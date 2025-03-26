@@ -1,0 +1,18 @@
+package:
+  name: '{{ PACKAGE_NAME }}'
+  version: '{{ PACKAGE_VERSION }}'
+source:
+  path: ../src
+requirements:
+  run:
+  - typeguard
+  - vim
+  - pandas
+  - lxml
+  - duckdb
+  - numpy
+  - ipykernel
+  - pip
+  - foundry-transforms-lib-python
+  pip:
+  - diff
