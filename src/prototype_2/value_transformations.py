@@ -1,6 +1,5 @@
 import logging
 import pandas as pd
-from . import concept_df
 from . import codemap_xwalk
 from . import ccda_value_set_mapping_table_dataset
 from . import visit_concept_xwalk_mapping_dataset
@@ -60,71 +59,6 @@ def cast_as_concept_id(args_dict):  # TBD FIX TODO
     return ""
 
 
-############################################################################
-""" Functions below prefixed "map_hl7_to_omop" use an imcomplete, 
-    stand-alone mapping file. Great for testing in non-Foundry
-    environments, they are deprecated and not as up-to-date as
-    datasets in Foundry created by the mapping team.
-"""
-
-def _map_to_omop_concept_row(vocabulary_oid, concept_code, default, column_name):
-    """
-    """
-    logger.error(f"MAPPING FROM FILE, not datasets {vocabulary_oid} {concept_code} {column_name}. You shouldn't see this if you're on Foundry.")
-    print(f"MAPPING FROM FILE, not datasets {vocabulary_oid} {concept_code} {column_name}. . You shouldn't see this if you're on Foundry.")
-    try:
-        # codemap_xwalk
-        concept_id_df = concept_df[(concept_df['oid'] == vocabulary_oid) &
-                                (concept_df['concept_code'] == concept_code)]
-
-        if len(concept_id_df) < 1:
-##logger.error(f"_map_to_omop_concept_row(): no value from map for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", defaulting to \"{default}\" ")
-           return default
-
-        if len(concept_id_df) > 1:
-           logger.warning(f"_map_to_omop_conept_row(): more than one  concept for \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
-
-        if concept_id_df is None:
-            return default
-
-        return concept_id_df[column_name].iloc[0]
-    except IndexError as e:
-##        logger.warning(f"_map_to_omop_concept_rows(): no value from map for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\" type:{type(e)}, defautling to \"{default}\" ")
-        return default
-
-
-def map_hl7_to_omop_concept_id(args_dict):  
-    """ expects: vocabulary_oid, concept_code
-        returns: standard concept_id 
-    """
-    id_value = _map_to_omop_concept_row(args_dict['vocabulary_oid'],
-                                        args_dict['concept_code'],
-                                        args_dict['default'],
-                                        'concept_id')
-    if id_value is not None:
-        return int32(id_value)
-    else:
-        return None
-
-
-def map_hl7_to_omop_domain_id(args_dict):
-    """ expects: vocabulary_oid, concept_code
-        returns: domain_id
-    """
-    id_value =  _map_to_omop_concept_row(args_dict['vocabulary_oid'],
-                                    args_dict['concept_code'],
-                                    args_dict['default'],
-                                    'domain_id')
-    if id_value is not None:
-        return str(id_value)
-    else:
-        return None
-    
-
-def map_hl7_to_omop_source_concept_id(args_dict):
-    """ expects: vocabulary_oid, concept_code
-        returns: concept_id AS INTEGER (because that's what's in the table)
-    """
 
     
 ############################################################################
