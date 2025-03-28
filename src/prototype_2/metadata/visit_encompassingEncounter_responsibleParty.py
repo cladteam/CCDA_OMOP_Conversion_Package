@@ -270,32 +270,4 @@ metadata = {
         },
         'preceding_visit_occurrence_id': { 'config_type': None, 'order': 17},
 
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
-        
-        # 'custodian_id' : {
-        #     'config_type': 'PRIORITY',
-        #     'orider': 18
-        # }
-        #,'custodian_id_constant' : {
-        #    'config_type': 'CONSTANT_PK', # new type
-        #    'constant_value': "unknown", # place holder
-        #    'priority' : ['custodian_id', 100]
-        #}
-        #, 'custodian_id_field_ext' : {
-        #    'config_type': 'FIELD',
-        #    'element_no_root': "./custodian/id",  # new attribute, conditional on lack of just 'element'
-        #    'attribute' : 'extension',
-        #    'priority' : ['custodian_id', 1]  
-        #  }
-        #, 'custodian_id_field_root' : {
-        #    'config_type': 'FIELD',
-        #    'element_no_root': "./custodian/id", 
-        #    'attribute' : 'extension',
-        #    'priority' : ['custodian_id' 2]
-        #  }
-        # TODO: add custodian_id to person, and as a FK to the domains
-    }
 }

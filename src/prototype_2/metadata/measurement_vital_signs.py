@@ -18,7 +18,6 @@ metadata = {
         'source_section': {
             'config_type': 'CONSTANT',
             'constant_value': 'VITAL SIGNS',
-            'order': 9999
     	},
         
     	'measurement_id_root': {
@@ -222,12 +221,6 @@ metadata = {
             'constant_value': 'n/a',
             'priority': ['value_source_value', 4],
         },
-    	#'value_source_value_text': {
-    	#    'config_type': 'FIELD',
-    	#    'element': 'hl7:value[@xsi:type="ST"]' ,
-    	#    'attribute': "#text",
-        #    'priority': ['value_source_value', 3],
-        #},
     	'value_source_value_code': {
     	    'config_type': 'FIELD',
     	    'element': 'hl7:value[@xsi:type="CD"]' ,
@@ -244,10 +237,5 @@ metadata = {
             'config_type': 'PRIORITY',
             'order':20
         },
-
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
     }
 }

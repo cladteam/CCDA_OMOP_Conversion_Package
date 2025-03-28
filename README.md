@@ -1,3 +1,8 @@
+# gotchas from Chris 
+- The name of the project is what you use to import that package into your other repo. 
+  When importing in Foundry, you must specify the name in lower case.
+  The package you import inside python is the the name of the directory under the 'src' directory and has no relationship to the repository name.
+
 # Publishing Conda libraries
 
 This repository template is set up to publish a Conda library into Foundry. The ``build.gradle`` file configures the publish task to only run when the repository is tagged. You can create a new tag from the "Branches" tab.

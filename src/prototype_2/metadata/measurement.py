@@ -16,23 +16,15 @@ metadata = {
     		    # FIX: another template at the observation level here: "2.16.840.1.113883.10.20.22.4.2  Result Observation is an entry, not a section
         },
         
-        'source_section': {
-            'config_type': 'CONSTANT',
-            'constant_value': 'RESULTS',
-            'order': 9999
-    	},
-
     	'measurement_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'root',
-            'order': 1001
     	},
     	'measurement_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension',
-            'order': 1002
     	},
     	'measurement_id_hash': {
     	    'config_type': 'HASH',
@@ -260,10 +252,5 @@ metadata = {
             'config_type': 'PRIORITY',
             'order':20
         },
-
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
     }
 }

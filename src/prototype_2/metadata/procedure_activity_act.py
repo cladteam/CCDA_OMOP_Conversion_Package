@@ -19,13 +19,11 @@ metadata = {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'root',
-            'order': 1001
     	},
     	'procedure_occurrence_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension',
-            'order': 1002
     	},
     	'procedure_occurrence_id_hash': {
     	    'config_type': 'HASH',
@@ -145,11 +143,5 @@ metadata = {
             'constant_value' : '',
             'order': 14
         },
-
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
-
     }
 }

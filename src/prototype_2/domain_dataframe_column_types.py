@@ -5,7 +5,11 @@ from numpy import float32
 from numpy import int32 # int
 from numpy import int64 # long
 
+# Pandas data types to impose them when creating a dataframe
+# rather than having it guess from the data.
+
 domain_dataframe_column_types ={
+    # table names here
  
     'care_site':{
         'care_site_id': int64, # check
@@ -114,5 +118,5 @@ domain_dataframe_column_types ={
         'visit_occurrence_id': int64,
         'visit_detail_id': int64
     }
-    
-}
+}    
+
