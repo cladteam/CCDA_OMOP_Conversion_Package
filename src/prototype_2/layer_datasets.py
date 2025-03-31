@@ -137,7 +137,7 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                             #column_dict[field].append(domain_data_dict[field])
                             prepared_value = domain_data_dict[field]
 
-                        if math.isnan(prepared_value):
+                        if isinstance(prepared_value, (int, float)) and math.isnan(prepared_value):
                             prepared_value = None
                         column_dict[field].append(prepared_value)
                     else:
