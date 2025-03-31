@@ -202,17 +202,19 @@ def parse_field_from_dict(field_details_dict :dict[str, str], root_element,
     if 'data_type' in field_details_dict:
         if attribute_value is not None:
             if field_details_dict['data_type'] == 'DATE':
-                try:
-                    attribute_value = cast_to_date(attribute_value)
-                except Exception as e:
-                    print(f"cast to date failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
-                    logger.error(f"cast to date failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
+                attribute_value = cast_to_date(attribute_value)
+                #try:
+                #    attribute_value = cast_to_date(attribute_value)
+                #except Exception as e:
+                #    print(f"cast to date failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
+                #    logger.error(f"cast to date failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
             elif field_details_dict['data_type'] == 'DATETIME':
-                try:
-                    attribute_value = cast_to_datetime(attribute_value)
-                except Exception as e:
-                    print(f"cast to datetime failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
-                    logger.error(f"cast to datetime failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
+                attribute_value = cast_to_datetime(attribute_value)
+                #try:
+                #    attribute_value = cast_to_datetime(attribute_value)
+                #except Exception as e:
+                #    print(f"cast to datetime failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
+                #    logger.error(f"cast to datetime failed for config:{config_name} field:{field_tag} val:{attribute_value}") 
             elif field_details_dict['data_type'] == 'LONG':
                 try:
                     attribute_value = int64(attribute_value)
