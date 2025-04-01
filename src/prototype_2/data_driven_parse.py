@@ -203,7 +203,7 @@ def parse_field_from_dict(field_details_dict :dict[str, str], root_element,
 
     # Do data-type conversions
     if 'data_type' in field_details_dict:
-        if attribute_value is not None:
+        if attribute_value is not None and attribute_value == attribute_value:
             if field_details_dict['data_type'] == 'DATE':
                 #attribute_value = cast_to_date(attribute_value)
                 try:
@@ -252,12 +252,19 @@ def parse_field_from_dict(field_details_dict :dict[str, str], root_element,
             else:
                 print(f" UNKNOWN DATA TYPE: {field_details_dict['data_type']} {config_name} {field_tag}")
                 logger.error(f" UNKNOWN DATA TYPE: {field_details_dict['data_type']} {config_name} {field_tag}")
+
+            if attribute_value is None or math.isnan(attribute_value) or pd.isnull(attribute_value):
+                raise Exception(f"No Nones, N/As, NaNs or NaTs allowed(2)! {config_name} {field_tag}")
             return attribute_value
+
         else:
-        #    print(f" no value: {field_details_dict['data_type']} {config_name} {field_tag}")
-        #   logger.error(f" no value: {field_details_dict['data_type']} {config_name} {field_tag}")
+            print(f" no value: {field_details_dict['data_type']} {config_name} {field_tag}")
+            logger.error(f" no value: {field_details_dict['data_type']} {config_name} {field_tag}")
+            raise Exception(f"No Nones, N/As, NaNs or NaTs allowed(1)! {config_name} {field_tag}")
             return None
     else:
+        if attribute_value is None or math.isnan(attribute_value) or pd.isnull(attribute_value):
+            raise Exception(f"No Nones, N/As, NaNs or NaTs allowed(3)! {config_name} {field_tag}"
         return attribute_value
 
 
@@ -563,6 +570,8 @@ def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | dat
         Dubiously useful in an environment where IDs are  32 bit integers.
         See the code above for converting according to the data_type attribute
         where a different kind of hash is beat into an integer.
+
+        ALSO A PK
     """
     for (field_tag, field_details_dict) in config_dict.items():
         if field_details_dict['config_type'] == 'HASH':
