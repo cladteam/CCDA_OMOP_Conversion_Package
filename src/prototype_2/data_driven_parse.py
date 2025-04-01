@@ -503,7 +503,7 @@ def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | d
                     except Exception as e:
                         logger.error(f"DERIVED exception: {e}")
                         output_dict[field_tag] = None
-                    except Error: # as er:
+                    except: # Error as er:
 #                        logger.error(f"DERIVED error: {er}")
                         output_dict[field_tag] = None
                     
@@ -536,7 +536,7 @@ def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | d
             except Exception as e:
                 logger.error(f"DERIVED exception: {e}")
                 output_dict[field_tag] = None
-            except Error: # as er:
+            except: #Error as er:
 #                logger.error(f"DERIVED error: {e}")
                 output_dict[field_tag] = None
 
