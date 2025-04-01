@@ -160,7 +160,7 @@ def cast_to_datetime(string_value) -> datetime.datetime | None:
 
 @typechecked
 def parse_field_from_dict(field_details_dict :dict[str, str], root_element, 
-        config_name, field_tag, root_path) ->  None | str | float | int | int32 | datetime.datetime | datetime.date:
+        config_name, field_tag, root_path) ->  None | str | float | int | int32 | int64 | datetime.datetime | datetime.date:
     """ Retrieves a value for the field descrbied in field_details_dict that lies below
         the root_element.
         Domain and field_tag are here for error messages.
@@ -296,7 +296,7 @@ def parse_field_from_dict(field_details_dict :dict[str, str], root_element,
 
 
 @typechecked
-def do_none_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date ],
+def do_none_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date ],
                    root_element, root_path, config_name,  
                    config_dict :dict[str, dict[str, str | None]], 
                    error_fields_set :set[str]):
@@ -309,7 +309,7 @@ def do_none_fields(output_dict :dict[str, None | str | float | int | int32 | dat
 
             
 @typechecked
-def do_constant_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_constant_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                        root_element, root_path, config_name,  
                        config_dict :dict[str, dict[str, str | None]], 
                        error_fields_set :set[str]):
@@ -324,7 +324,7 @@ def do_constant_fields(output_dict :dict[str, None | str | float | int | int32 |
 
             
 @typechecked
-def do_filename_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_filename_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                        root_element, root_path, config_name,  
                        config_dict :dict[str, dict[str, str | None]], 
                        error_fields_set :set[str],
@@ -338,7 +338,7 @@ def do_filename_fields(output_dict :dict[str, None | str | float | int | int32 |
 
             
 @typechecked
-def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                     root_element, root_path, config_name,  
                     config_dict :dict[str, dict[str, str | None] ], 
                     error_fields_set :set[str], 
@@ -371,7 +371,7 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | da
             
 
 @typechecked 
-def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int32 | int64 |datetime.datetime | datetime.date], 
                     root_element, root_path, config_name,  
                     config_dict :dict[str, dict[str, str | None] ], 
                     error_fields_set :set[str], 
@@ -438,7 +438,7 @@ def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int3
                 error_fields_set.add(field_tag)
 
 @typechecked
-def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                       root_element, root_path, config_name,  
                       config_dict :dict[str, dict[str, str | None]], 
                       error_fields_set :set[str]):
@@ -505,7 +505,7 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
                 output_dict[field_tag] = None
                 
 @typechecked
-def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                      root_element, root_path, config_name, 
                      config_dict :dict[str, dict[str, str | None]], 
                      error_fields_set :set[str]) -> str | None :
@@ -587,7 +587,7 @@ def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | d
 
 
 @typechecked
-def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | datetime.datetime | datetime.date], 
+def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                    root_element, root_path, config_name,  
                    config_dict :dict[str, dict[str, str | None]], 
                    error_fields_set :set[str], 
@@ -618,7 +618,7 @@ def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | dat
 
             
 @typechecked
-def do_priority_fields(output_dict :dict[str, None | str | float | int | int32 |  datetime.datetime | datetime.date], 
+def do_priority_fields(output_dict :dict[str, None | str | float | int | int32 | int64 |  datetime.datetime | datetime.date], 
                        root_element, root_path, config,  
                        config_dict :dict[str, dict[str, str | None]], 
                        error_fields_set :set[str], 
@@ -697,7 +697,7 @@ def get_filter_fn(dict):
 
 
 @typechecked
-def sort_output_dict(output_dict :dict[str, None | str | float | int], 
+def sort_output_dict(output_dict :dict[str, None | str | float | int | int64], 
                      config_dict :dict[str, dict[str, str | None]], config_name):
     """ Sorts the ouput_dict by the value of the 'order' fields in the associated
         config_dict. Fields without a value, or without an entry used to 
@@ -723,7 +723,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
                                  config_dict :dict[str, dict[str, str | None]], 
                                  error_fields_set : set[str], 
                                  pk_dict :dict[str, list[any]],
-                                 filename :str) -> dict[str,  None | str | float | int | datetime.datetime | datetime.date] | None:
+                                 filename :str) -> dict[str,  None | str | float | int | int64 |  datetime.datetime | datetime.date] | None:
 
     """  Parses for each field in the metadata for a config out of the root_element passed in.
          You may have more than one such root element, each making for a row in the output.
@@ -797,7 +797,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
 @typechecked
 def parse_config_from_xml_file(tree, config_name, 
                            config_dict :dict[str, dict[str, str | None]], filename, 
-                           pk_dict :dict[str, list[any]]) -> list[ dict[str,  None | str | float | int | datetime.datetime | datetime.date] | None  ] | None:
+                           pk_dict :dict[str, list[any]]) -> list[ dict[str,  None | str | float | int | int64 | datetime.datetime | datetime.date] | None  ] | None:
                                                                    
     """ The main logic is here.
         Given a tree from ElementTree representing a CCDA document
@@ -917,8 +917,8 @@ domain_dates = {
         
 @typechecked 
 def reconcile_visit_FK_with_specific_domain(domain: str, 
-                                            domain_dict: list[dict[str, None | str | float | int | datetime.datetime | datetime.date] ] | None , 
-                                            visit_dict:  list[dict[str, None | str | float | int | datetime.datetime | datetime.date] ] | None):
+                                            domain_dict: list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] ] | None , 
+                                            visit_dict:  list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] ] | None):
     if visit_dict is None:
         logger.error(f"no visits for {domain} in reconcile_visit_FK_with_specific_domain, reconcilliation")
         return
@@ -1076,7 +1076,7 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
 @typechecked
 def parse_string(ccda_string, file_path,
               metadata :dict[str, dict[str, dict[str, str]]]) -> dict[str, 
-                      list[ dict[str,  None | str | float | int] | None  ] | None]:
+                      list[ dict[str,  None | str | float | int | int64 ] | None  ] | None]:
     """ 
         * E X P E R I M E N T A L *
     
@@ -1102,7 +1102,7 @@ def parse_string(ccda_string, file_path,
     
 @typechecked
 def reconcile_visit_foreign_keys(data_dict :dict[str, 
-                                                 list[ dict[str,  None | str | float | int | datetime.datetime | datetime.date] | None  ] | None]) :
+                                                 list[ dict[str,  None | str | float | int |int64 | datetime.datetime | datetime.date] | None  ] | None]) :
     # data_dict is a dictionary of config_names to a list of record-dicts
     metadata = [
     ('Measurement', 'Measurement_results', 'Visit' ),
@@ -1125,7 +1125,7 @@ def reconcile_visit_foreign_keys(data_dict :dict[str,
 @typechecked
 def parse_doc(file_path, 
               metadata :dict[str, dict[str, dict[str, str]]]) -> dict[str, 
-                      list[ dict[str,  None | str | float | int] | None  ] | None]:
+                      list[ dict[str,  None | str | float | int | int64] | None  ] | None]:
     """ Parses many meta configs from a single file, collects them in omop_dict.
         Returns omop_dict, a  dict keyed by configuration names, 
           each a list of record/row dictionaries.
@@ -1150,7 +1150,7 @@ def parse_doc(file_path,
 
 
 @typechecked
-def print_omop_structure(omop :dict[str, list[ dict[str, None | str | float | int ] ] ], 
+def print_omop_structure(omop :dict[str, list[ dict[str, None | str | float | int | int64 ] ] ], 
                          metadata :dict[str, dict[str, dict[str, str ] ] ] ):
     
     """ prints a dict of parsed domains as returned from parse_doc()
