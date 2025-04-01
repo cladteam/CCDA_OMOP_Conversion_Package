@@ -271,7 +271,7 @@ def parse_field_from_dict(field_details_dict :dict[str, str], root_element,
             raise Exception(wth)
             return None
     else:
-        if attribute_value is None or attribute_value != attribute_value
+        if attribute_value is None or attribute_value != attribute_value:
             wth = f"No Nones, N/As, NaNs or NaTs allowed(3)! {config_name} {field_tag}" 
             #raise Exception(f"No Nones, N/As, NaNs or NaTs allowed(3)! {config_name} {field_tag}")
             raise Exception(wth)
