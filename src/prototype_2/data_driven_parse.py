@@ -126,7 +126,9 @@ def create_hash(input_string):
     if input_string == '':
         return None
     hash_value = hashlib.md5(input_string.encode('utf-8').upper())
-    return hash_value
+    hash_digest = hash_value.hexdigest()
+    long_hash_value = int(hash_digest, 31)
+    return long_hash_value
 
 
 @typechecked
