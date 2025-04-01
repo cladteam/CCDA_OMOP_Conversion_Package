@@ -22,6 +22,8 @@ requirements:
   # https://docs.conda.io/projects/conda-build/en/latest/resources/define-metadata.html#run
   run:
     - python
+    - pandas
+    - lxml
 
 build:
   script: python setup.py install --single-version-externally-managed --record=record.txt

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 """ Table-Driven ElementTree parsing in Python
 
@@ -69,7 +68,9 @@ import argparse
 import datetime
 from dateutil.parser import parse
 import logging
+import math
 import os
+import pandas as pd
 import sys
 import hashlib
 import zlib
