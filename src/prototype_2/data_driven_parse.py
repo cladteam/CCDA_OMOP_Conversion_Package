@@ -466,8 +466,8 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
             except Exception as e:
                 logger.error(f"DERIVED exception: {e}")
                 output_dict[field_tag] = None
-            except Error as er:
-                logger.error(f"DERIVED error: {e}")
+            except: # Error as er:
+#                logger.error(f"DERIVED error: {er}")
                 output_dict[field_tag] = None
                 
 @typechecked
@@ -503,8 +503,8 @@ def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | d
                     except Exception as e:
                         logger.error(f"DERIVED exception: {e}")
                         output_dict[field_tag] = None
-                    except Error as er:
-                        logger.error(f"DERIVED error: {e}")
+                    except Error: # as er:
+#                        logger.error(f"DERIVED error: {er}")
                         output_dict[field_tag] = None
                     
             # Derive the value
@@ -536,8 +536,8 @@ def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | d
             except Exception as e:
                 logger.error(f"DERIVED exception: {e}")
                 output_dict[field_tag] = None
-            except Error as er:
-                logger.error(f"DERIVED error: {e}")
+            except Error: # as er:
+#                logger.error(f"DERIVED error: {e}")
                 output_dict[field_tag] = None
 
     if domain_id == 0: # TODO, we should decide between 0/NMC and None for an unknown domain_id
