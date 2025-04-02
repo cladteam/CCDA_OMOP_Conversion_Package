@@ -245,7 +245,7 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
     return dataframe_dict
 
 @typechecked
-def process_string_to_dict(contents, filepath, write_csv_flag) -> dict[str, dict]:
+def process_string_to_dict(contents, filepath, write_csv_flag) -> dict[str, list[dict]]:
     """ 
         * E X P E R I M E N T A L *
     

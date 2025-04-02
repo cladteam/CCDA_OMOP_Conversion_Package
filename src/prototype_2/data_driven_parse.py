@@ -737,7 +737,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
         This is how  OMOP "domain routing" is implemented here.
 
 
-         Returns (output_dict,  error_fields_set)
+         Returns output_dict, a record
     """
     output_dict = {} #  :dict[str, any]  a record
     domain_id = None
