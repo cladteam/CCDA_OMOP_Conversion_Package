@@ -139,6 +139,10 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                             # for debuggin in Spark, raise exception
                             msg=f"layered_datasets.create_omop_domain_dataframes() NaN/NaT {config_name} {field} {prepared_value} <--"
                             raise Exception(msg)
+                        if prepared_value is None and field == 'condition_start_date':
+                            # for debuggin in Spark, raise exception
+                            msg=f"layered_datasets.create_omop_domain_dataframes() None start-date {config_name} {field} {prepared_value} <--"
+                            raise Exception(msg)
                     column_dict[field].append(None)
                         
     
