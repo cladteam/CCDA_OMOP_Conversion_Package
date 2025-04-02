@@ -118,35 +118,31 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
             # Add the data from all the rows
             for domain_data_dict in domain_list:
                 for field in column_dict.keys():
+                    prepared_value = None
                     if field in domain_data_dict:
                         if domain_data_dict[field] == 'RECONCILE FK':
                             logger.error(f"RECONCILE FK for {field} in {config_name}")
-                            #column_dict[field].append(None)
                             prepared_value = None
                         elif field == 'visit_concept_id' and type(domain_data_dict[field]) == str:
                             # hack when visit_type_xwalk returns a string
-                            #column_dict[field].append(int32(domain_data_dict[field]))
                             prepared_value =  int32(domain_data_dict[field])
                         elif field[-8:] == "datetime" and domain_data_dict[field] is not None:
                             try:
-                                #column_dict[field].append(domain_data_dict[field].replace(tzinfo=None))
                                 prepared_value = domain_data_dict[field].replace(tzinfo=None)
                             except Exception as e:
                                 prepared_value = None
                                 print(f"ERROR  TZ {type(domain_data_dict[field])} {domain_data_dict[field]} {field} {e}")
                         else:
-                            #column_dict[field].append(domain_data_dict[field])
                             prepared_value = domain_data_dict[field]
 
-                        if isinstance(prepared_value, (int, float)) and math.isnan(prepared_value):
-                            prepared_value = None
-                        column_dict[field].append(prepared_value)
-                    else:
-                        column_dict[field].append(None)
+                        if prepared_value != prepared_value:
+                            # for debuggin in Spark, raise exception
+                            msg=f"layered_datasets.create_omop_domain_dataframes() NaN/NaT {config_name} {field} {prepared_value} <--"
+                            raise Exception(msg)
+                    column_dict[field].append(None)
                         
     
-            # use domain_dataframe_colunn_types to cast as directed
-            # Q: this just adds 0 and casts those specifically?
+            # Use domain_dataframe_colunn_types to cast dataframe columns as directed
             # Create a Pandas dataframe from the data_dict
             try:
                 ##show_column_dict(config_name, column_dict)
@@ -155,8 +151,6 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                 table_name = domain_name_to_table_name[domain_name]
                 if table_name in domain_dataframe_column_types.keys():
                     for column_name, column_type in domain_dataframe_column_types[table_name].items():
-                        
-                        
                         if column_type in ['date', 'datetime', datetime64]:
                             domain_df[column_name] = pd.to_datetime(domain_df[column_name])
   
@@ -175,7 +169,8 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                             except Exception as e:
                                 print(f"CAST ERROR in layer_datasets.py table:{table_name} column:{column_name} type:{column_type}  ")
                                 print(f"  exception  {domain_df[column_name]}   {type(domain_df[column_name])}")
-                    
+
+                    # TODO: check whole column for NaN or NaT here
                                                               
                             
                 df_dict[config_name] = domain_df
