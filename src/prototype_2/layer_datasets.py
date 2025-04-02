@@ -304,7 +304,7 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
 @typechecked
 def dict_summary(my_dict):
     for key in my_dict:
-        logger.info(f"Summary {key} {len(mh_dict[key])}")
+        logger.info(f"Summary {key} {len(my_dict[key])}")
 
 
 @typechecked
@@ -335,7 +335,7 @@ def export_to_foundry(domain_name, df):
     """
     
     if domain_name not in domain_name_to_table_name:
-        printf("ERROR: not able to map domain:{domain_name} to dataset/table name")
+        print(f"ERROR: not able to map domain:{domain_name} to dataset/table name")
 
     dataset_name = domain_name_to_table_name[domain_name]
     print(f"EXPORTING: {dataset_name}")
