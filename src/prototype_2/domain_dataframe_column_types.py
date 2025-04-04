@@ -168,7 +168,7 @@ domain_dataframe_column_types ={
         'drug_exposure_start_datetime': datetime.datetime,
         'drug_exposure_end_date': datetime.date,
         'drug_exposure_end_datetime': datetime.datetime,
-        'verbatim_end_date': str,
+        'verbatim_end_date': datetime.date,
         'drug_type_concept_id': int32,
         'stop_reason': str,
         'refills': int32,
