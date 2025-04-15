@@ -213,6 +213,10 @@ metadata = {
             'constant_value' : '',
             'order': 18 
         },
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+        }		
     }
 }
 

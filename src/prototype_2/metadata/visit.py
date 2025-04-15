@@ -300,6 +300,9 @@ metadata = {
 	    'order':16
         },
         'preceding_visit_occurrence_id': { 'config_type': None, 'order': 17},
-
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+        }
     }
 }

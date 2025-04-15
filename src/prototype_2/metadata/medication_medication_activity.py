@@ -404,6 +404,9 @@ metadata = {
             'attribute': "unit",
             'order': 23
         },
-
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+        }
     }
 }
