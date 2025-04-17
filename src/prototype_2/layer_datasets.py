@@ -20,7 +20,7 @@ from numpy import float32
 from numpy import datetime64
 import numpy as np
 import warnings
-import value_transformations
+import ..value_transformations as value_transformations
 
 
 
