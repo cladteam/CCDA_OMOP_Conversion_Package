@@ -71,6 +71,7 @@ def cast_as_concept_id(args_dict):  # TBD FIX TODO
 def codemap_xwalk_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: concept_id AS INTEGER (because that's what's in the table), not necessarily standard
+        throws/raises when codemap_xwalk is None
     """
     id_value =  _codemap_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_concept_id', args_dict['default']) 
@@ -84,6 +85,7 @@ def codemap_xwalk_concept_id(args_dict):
 def codemap_xwalk_domain_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: domain_id
+        throws/raises when codemap_xwalk is None
     """
     id_value = _codemap_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_domain_id', args_dict['default']) 
@@ -97,6 +99,7 @@ def codemap_xwalk_domain_id(args_dict):
 def codemap_xwalk_source_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: unmapped concept_id AS INTEGER (because that's what's in the table), not necessarily standard
+        throws/raises when codemap_xwalk is None
     """
     id_value =  _codemap_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'source_concept_id', args_dict['default']) 
@@ -109,7 +112,11 @@ def codemap_xwalk_source_concept_id(args_dict):
 
 def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
+        throws/raises when codemap_xwalk is None
     """
+    if codemap_xwalk is None:
+        raise Exception("codemap_xwalk is not initialized in prototype_2/__init__.py for value_transformations.py")
+        
     try:
         #df = codemap_xwalk[ (codemap_xwalk['vocab_oid'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
         # 2025-03-04 new version of codemap schema:
@@ -139,6 +146,7 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
 def visit_xwalk_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: concept_id AS INTEGER (because that's what's in the table), not necessarily standard
+        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
     id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_concept_id', args_dict['default']) 
@@ -152,6 +160,7 @@ def visit_xwalk_concept_id(args_dict):
 def visit_xwalk_domain_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: domain_id
+        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
     id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_domain_id', args_dict['default']) 
@@ -165,6 +174,7 @@ def visit_xwalk_domain_id(args_dict):
 def visit_xwalk_source_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: unmapped concept_id AS INTEGER (because that's what's in the table), not necessarily standard
+        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """ 
     id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'source_concept_id', args_dict['default']) 
@@ -176,7 +186,10 @@ def visit_xwalk_source_concept_id(args_dict):
 
 def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
+        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
+    if visit_concept_xwalk_mapping_dataset is None:
+        raise Exception("visit_concept_xwalk_mapping_dataset is not initialized in prototype_2/__init__.py for value_transformations.py")
     try:
         df = visit_concept_xwalk_mapping_dataset[ 
                             (visit_concept_xwalk_mapping_dataset['codeSystem'] == vocabulary_oid) &
@@ -206,6 +219,7 @@ def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
 def valueset_xwalk_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: concept_id AS INTEGER
+        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
     id_value = _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_concept_id', args_dict['default']) 
@@ -219,6 +233,7 @@ def valueset_xwalk_concept_id(args_dict):
 def valueset_xwalk_domain_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: domain_id
+        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
     id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_domain_id', args_dict['default']) 
@@ -232,6 +247,7 @@ def valueset_xwalk_domain_id(args_dict):
 def valueset_xwalk_source_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: unmapped concept_id AS INTEGER not necessarily standard
+        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
     
     id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
@@ -245,7 +261,10 @@ def valueset_xwalk_source_concept_id(args_dict):
     
 def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
+        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
+    if visit_concept_xwalk_mapping_dataset is None:
+        raise Exception("ccda_value_set_mapping_table_dataset is not initialized in prototype_2/__init__.py for value_transformations.py")
     try:
         df = ccda_value_set_mapping_table_dataset[ (ccda_value_set_mapping_table_dataset['codeSystem'] == vocabulary_oid) &
                                                    (ccda_value_set_mapping_table_dataset['src_cd']  == concept_code) ]
