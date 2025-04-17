@@ -125,11 +125,13 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
     #df = codemap_xwalk[ (codemap_xwalk['vocab_oid'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
     # 2025-03-04 new version of codemap schema:
     df = codemap_xwalk[ (codemap_xwalk['src_vocab_code_system'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
-    if len(df) < 1:
+    #if len(df) < 1:
+    if df.count() < 1:
        return default
 
-    if len(df) > 1:
-       logger.warning(f"_codemap_xwalk(): more than one  value for coljmn \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+    #if len(df) > 1: 
+    if df.count() > 1:
+        logger.warning(f"_codemap_xwalk(): more than one  value for coljmn \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
     if df is None:
         return default
@@ -197,10 +199,12 @@ def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
         (visit_concept_xwalk_mapping_dataset['codeSystem'] == vocabulary_oid) &
         (visit_concept_xwalk_mapping_dataset['src_cd']  == concept_code) ]
 
-    if len(df) < 1:
+    #if len(df) < 1:
+    if df.count() < 1:
         return default
 
-    if len(df) > 1:
+    #if len(df) > 1:
+    if df.count() > 1:
        logger.warning(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
     if df is None:
@@ -251,7 +255,7 @@ def valueset_xwalk_source_concept_id(args_dict):
     
     id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'source_concept_id', args_dict['default']) 
-    
+   
     if id_value is not None:
         return int32(id_value)
     else:
@@ -268,10 +272,12 @@ def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default):
     ccda_value_set_mapping_table_dataset =  get_ccda_value_set_mapping_table_dataset()
     df = ccda_value_set_mapping_table_dataset[ (ccda_value_set_mapping_table_dataset['codeSystem'] == vocabulary_oid) &
                                                    (ccda_value_set_mapping_table_dataset['src_cd']  == concept_code) ]
-    if len(df) < 1:
+    #if len(df) < 1:
+    if df.count() < 1:
         return default
 
-    if len(df) > 1:
+    #if len(df) > 1:
+    if df.count() > 1:
         logger.warning(f"_valueset_xwalk(): more than one  value for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
     if df is None:
