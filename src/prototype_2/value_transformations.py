@@ -123,7 +123,7 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
     codemap_xwalk = get_codemap_xwalk()
 
     # initing the maps is not working, test here, quickly, fail severly
-    test_value = codemap_xwalk_concept_id({'vocabulary_id': '2.16.840.1.113883.6.96', 'concept_code': '608837004', 'default': 'XXX'})
+    test_value = codemap_xwalk_concept_id({'vocabulary_oid': '2.16.840.1.113883.6.96', 'concept_code': '608837004', 'default': 'XXX'})
     if test_value is None or test_value == 'XXX' or test_value == 'None':
         raise Exception("codemap_xwalk test failed with some form of None")
     if test_value != '1340204':
