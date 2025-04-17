@@ -136,7 +136,8 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
     if df is None:
         return default
         
-    return df[column_name].iloc[0]
+    #return df[column_name].iloc[0]  # pandas?
+    return df.first()[column_name]
 
     
     
@@ -209,8 +210,9 @@ def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
 
     if df is None:
         return default
-    return df[column_name].iloc[0]
-
+    #return df[column_name].iloc[0]
+    return df.first()[column_name]
+    
     
     
 ############################################################################
@@ -282,7 +284,8 @@ def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default):
 
     if df is None:
         return default
-    return df[column_name].iloc[0]
+    #return df[column_name].iloc[0]
+    return df.first()[column_name]
 
 ############################################################################
 
