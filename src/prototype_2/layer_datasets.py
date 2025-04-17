@@ -261,7 +261,7 @@ def process_string_to_dict(contents, filepath, write_csv_flag) -> dict[str, list
     if test_value is None or test_value == 'XXX' or test_value == 'None':
         raise Exception("codemap_xwalk test failed with some form of None")
     if test_value != '1340204':
-        raise Exception("codemap_xwalk test failed to deliver correct code"
+        raise Exception("codemap_xwalk test failed to deliver correct code")
 
     logging.basicConfig(
         format='%(levelname)s: %(filename)s %(lineno)d %(message)s',
