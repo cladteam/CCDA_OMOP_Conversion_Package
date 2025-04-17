@@ -1,8 +1,11 @@
 import logging
 import pandas as pd
-from . import codemap_xwalk
-from . import ccda_value_set_mapping_table_dataset
-from . import visit_concept_xwalk_mapping_dataset
+#from . import codemap_xwalk
+#from . import ccda_value_set_mapping_table_dataset
+#from . import visit_concept_xwalk_mapping_dataset
+from . import get_codemap_xwalk
+from . import get_ccda_value_set_mapping_table_dataset
+from . import get_visit_concept_xwalk_mapping_dataset
 from typeguard import typechecked
 import datetime
 from numpy import int32
@@ -114,8 +117,10 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
         throws/raises when codemap_xwalk is None
     """
-    if codemap_xwalk is None:
+    if get_codemap_xwalk() is None:
         raise Exception("codemap_xwalk is not initialized in prototype_2/__init__.py for value_transformations.py")
+
+    codemap_xwalk = get_codemap_xwalk()
 
     # initing the maps is not working, test here, quickly, fail severly
     test_value = codemap_xwalk_concept_id({'vocabulary_id': '2.16.840.1.113883.6.96', 'concept_code': '608837004', 'default': 'XXX'})
@@ -124,23 +129,19 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
     if test_value != '1340204':
         raise Exception("codemap_xwalk test failed to deliver correct code")
         
-    try:
-        #df = codemap_xwalk[ (codemap_xwalk['vocab_oid'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
-        # 2025-03-04 new version of codemap schema:
-        df = codemap_xwalk[ (codemap_xwalk['src_vocab_code_system'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
-        if len(df) < 1:
-##           logger.error(f"_codemap_xwalk(): no value from map for column \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\" ")
-           return default
+    #df = codemap_xwalk[ (codemap_xwalk['vocab_oid'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
+    # 2025-03-04 new version of codemap schema:
+    df = codemap_xwalk[ (codemap_xwalk['src_vocab_code_system'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
+    if len(df) < 1:
+       return default
 
-        if len(df) > 1:
-           logger.warning(f"_codemap_xwalk(): more than one  value for coljmn \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+    if len(df) > 1:
+       logger.warning(f"_codemap_xwalk(): more than one  value for coljmn \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
-        if df is None:
-            return default
-        return df[column_name].iloc[0]
-    except IndexError as e:
-        logger.warning(f"_codemap_xwalk(): no value from map for column \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\" type:{type(e)}")
+    if df is None:
         return default
+        
+    return df[column_name].iloc[0]
 
     
     
@@ -195,25 +196,23 @@ def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
         throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
-    if visit_concept_xwalk_mapping_dataset is None:
+    if get_visit_concept_xwalk_mapping_dataset() is None:
         raise Exception("visit_concept_xwalk_mapping_dataset is not initialized in prototype_2/__init__.py for value_transformations.py")
-    try:
-        df = visit_concept_xwalk_mapping_dataset[ 
-                            (visit_concept_xwalk_mapping_dataset['codeSystem'] == vocabulary_oid) &
-                            (visit_concept_xwalk_mapping_dataset['src_cd']  == concept_code) ]
-        if len(df) < 1:
-##           logger.error(f"_visit_xwalk(): no value from map for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\" ")
-           return default
 
-        if len(df) > 1:
-           logger.warning(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+    visit_concept_xwalk_mapping_dataset =  get_visit_concept_xwalk_mapping_dataset()
+    df = visit_concept_xwalk_mapping_dataset[ 
+        (visit_concept_xwalk_mapping_dataset['codeSystem'] == vocabulary_oid) &
+        (visit_concept_xwalk_mapping_dataset['src_cd']  == concept_code) ]
 
-        if df is None:
-            return default
-        return df[column_name].iloc[0]
-    except IndexError as e:
-##        logger.warning(f"_visit_xwalk(): no value from map for column \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\" type:{type(e)}")
+    if len(df) < 1:
         return default
+
+    if len(df) > 1:
+       logger.warning(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+
+    if df is None:
+        return default
+    return df[column_name].iloc[0]
 
     
     
@@ -270,27 +269,21 @@ def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
         throws/raises when ccda_value_set_mapping_table_dataset is None
     """
-    if visit_concept_xwalk_mapping_dataset is None:
+    if get_visit_concept_xwalk_mapping_dataset() is None:
         raise Exception("ccda_value_set_mapping_table_dataset is not initialized in prototype_2/__init__.py for value_transformations.py")
-    try:
-        df = ccda_value_set_mapping_table_dataset[ (ccda_value_set_mapping_table_dataset['codeSystem'] == vocabulary_oid) &
+
+    ccda_value_set_mapping_table_dataset =  get_ccda_value_set_mapping_table_dataset()
+    df = ccda_value_set_mapping_table_dataset[ (ccda_value_set_mapping_table_dataset['codeSystem'] == vocabulary_oid) &
                                                    (ccda_value_set_mapping_table_dataset['src_cd']  == concept_code) ]
-        if len(df) < 1:
-##           logger.error(f"_valueset_xwalk(): no value from map for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\" ")
-           return default
-
-        if len(df) > 1:
-           logger.warning(f"_valueset_xwalk(): more than one  value for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
-
-        if df is None:
-            return default
-        return df[column_name].iloc[0]
-    except IndexError as e:
-##        logger.warning(f"_valueset_xwalk(): no value from map for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\" type:{type(e)}")
+    if len(df) < 1:
         return default
-    except KeyError as e:
-        logger.warning(f"_valueset_xwalk(): requested field (codeSystem or src_cd?)  not available \"{vocabulary_oid}\" \"{concept_code}\" type:{type(e)}")
+
+    if len(df) > 1:
+        logger.warning(f"_valueset_xwalk(): more than one  value for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+
+    if df is None:
         return default
+    return df[column_name].iloc[0]
 
 ############################################################################
 
@@ -299,7 +292,7 @@ def map_valuesets_to_omop(args_dict):
     """
     vocab_oid = args_dict['vocabulary_oid']
     concept_code = args_dict['concept_code']
-    codemap_xwalk
+    ##codemap_xwalk
 
     
 @typechecked

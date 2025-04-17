@@ -21,16 +21,28 @@ codemap_xwalk = None
 ccda_value_set_mapping_table_dataset = None
 visit_concept_xwalk_mapping_dataset = None
 
+
 def set_codemap_xwalk(map):
     global codemap_xwalk
     codemap_xwalk =  map
+
+def get_codemap_xwalk():
+    return codemap_xwalk
+
 
 def set_ccda_value_set_mapping_table_dataset(map):
     global ccda_value_set_mapping_table_dataset
     ccda_value_set_mapping_table_dataset = map 
 
+def get_ccda_value_set_mapping_table_dataset():
+    return ccda_value_set_mapping_table_dataset
+
+
 def set_visit_concept_xwalk_mapping_dataset(map):
     global visit_concept_xwalk_mapping_dataset
     visit_concept_xwalk_mapping_dataset = map
+
+def get_visit_concept_xwalk_mapping_dataset():
+    return visit_concept_xwalk_mapping_dataset
 
 
