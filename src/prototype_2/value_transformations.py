@@ -117,7 +117,8 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
 
 def _codemap_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
     if get_codemap_xwalk_dict() is None:
-        raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/__init__.py for value_transformations.py")
+        return None
+    #    raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/__init__.py for value_transformations.py")
 
     codemap_xwalk_mapping_dict= get_visit_concept_xwalk_mapping_dict()
     map_dict = codemap_xwalk_mapping_dict[(vocabulary_oid, concept_code)]

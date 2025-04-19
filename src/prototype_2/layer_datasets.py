@@ -247,6 +247,30 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
         write_csvs_from_dataframe_dict(dataframe_dict, base_name, "output")
     return dataframe_dict
 
+
+@typechecked
+def process_string_to_dict_no_codemap(contents, filepath, write_csv_flag, visit_map_dict, valueset_map_dict) -> dict[str, list[dict]]:
+    """
+        Processes an XML CCDA string, returns data as Python structures.
+
+        Requires python dictionaries for mapping, brought in here, initialized to the package as 
+        part of making them available to executors in Spark.
+
+        Returns  dict of column lists
+    """
+    set_ccda_value_set_mapping_table_dict(visit_map_dict)
+    set_visit_concept_xwalk_mapping_dict(valueset_map_dict)
+
+    logging.basicConfig(
+        format='%(levelname)s: %(filename)s %(lineno)d %(message)s',
+         level=logging.INFO #level=logging.WARNING
+    )
+
+    omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
+    DDP.reconcile_visit_foreign_keys(omop_data)
+
+    return omop_data
+
 @typechecked
 def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, visit_map_dict, valueset_map_dict) -> dict[str, list[dict]]:
     """
