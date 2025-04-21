@@ -98,11 +98,6 @@ metadata = {
             'order': 6
         },
 
-    	'visit_occurrence_id':	{
-    	    'config_type': 'FK',
-    	    'FK': 'visit_occurrence_id'
-    	},
-
     	'value_type': {
     	    'config_type': 'FIELD',
     	    'element': "hl7:value",
@@ -187,7 +182,13 @@ metadata = {
         'qualifier_concept_id' : { 'config_type': None, 'order': 10 },
         'unit_concept_id': { 'config_type': None, 'order': 11 },
         'provider_id': { 'config_type': None, 'order': 12 },
-        'visit_occurrence_id': { 'config_type': None, 'order': 13 },
+
+    	'visit_occurrence_id':	{
+    	    'config_type': 'FK',
+    	    'FK': 'visit_occurrence_id',
+		    'order': 13 
+    	},
+
         'visit_detail_id': { 'config_type': None, 'order': 14 },
 
         'observation_source_value': {

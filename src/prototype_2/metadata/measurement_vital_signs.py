@@ -202,9 +202,13 @@ metadata = {
     	'visit_detail_id':	{ 'config_type': None, 'order':  16 },
 
     	'measurement_source_value':	{
-    	    'config_type': 'FIELD',
-    	    'element': "hl7:code" ,
-    	    'attribute': "code",
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.concat_fields,
+    	    'argument_names': {
+    		    'first_field': 'measurement_concept_code',
+    		    'second_field': 'measurement_concept_codeSystem',
+                'default': 0
+    	    },
             'order':  17
         },
 
