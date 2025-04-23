@@ -962,11 +962,6 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
                 # Q: what if you have dates in one place and datetimes in the other? TODO
                 # A: work with the most-specific value you have.
                 # TODO: make a test case that has different combinations, check that parsing populates them.
-                date_field_value = thing[date_field_name] 
-                if thing[datetime_field_name] is not None:
-                    date_field_value = thing[datetime_field_name]
-                
-                
                 # TODO: check for a second visit that fits
                 # TODO: the bennis_shauna file has UNK for the end date.
                 date_field_value = thing[date_field_name]
@@ -1113,7 +1108,6 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
                         ##if start_visit_date and end_visit_date:
                         ##    # Check if event overlaps with the visit period
 
-                        end_visit_datetime = visit['visit_end_datetime']
 
                         # Adjust datetime comparisons for start and end values
                         if isinstance(start_date_value, datetime.datetime) and isinstance(end_date_value,
@@ -1150,15 +1144,15 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
                                 ##(start_visit_date <= start_date_value <= end_visit_date) or
                                 ##(start_visit_date <= end_date_value <= end_visit_date) or
                                 ##(start_date_value <= start_visit_date and end_visit_date <= end_date_value)
-+                                    (start_visit_date <= start_date_value <= end_visit_date) and
-+                                    (start_visit_date <= end_date_value <= end_visit_date)
+                                    (start_visit_date <= start_date_value <= end_visit_date) and
+                                    (start_visit_date <= end_date_value <= end_visit_date)
                             ):
 ###                                print(f"MATCHED visit: v_start:{start_visit_date} event_start:{start_date_value} event_end:{end_date_value} v_end:{end_visit_date}")
                                 if not have_visit:
                                     thing['visit_occurrence_id'] = visit['visit_occurrence_id']
                                 ##else:
                                 ##    print(f"WARNING multiple fitting visits for {domain} {thing[domain_dates['id']]}")
-                                have_visit = True
+                                    have_visit = True
                     except KeyError as ke:
                         print(f"WARNING missing field  \"{ke}\", in visit reconcilliation, got error {type(ke)} ")   
                     except Exception as e:
