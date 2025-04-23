@@ -116,10 +116,10 @@ metadata = {
         #'county': {
         #'location_source_value': { TODO: concatentation of fields f"{address_1}|{address_2}|{city} "
 
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+        } 
 
     }
 }
