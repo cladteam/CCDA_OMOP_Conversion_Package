@@ -928,7 +928,13 @@ domain_dates = {
                     'end': ['device_exposure_end_date', 'device_exposure_end_datetime'],
                     'id': 'device_exposure_id'},
 }
-        
+
+@typechecked 
+def strip_tz(dt): # Strip timezone
+    if isinstance(dt, datetime.datetime) and dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
+
 @typechecked 
 def reconcile_visit_FK_with_specific_domain(domain: str, 
                                             domain_dict: list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] ] | None , 
@@ -966,7 +972,7 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
                 # TODO: the bennis_shauna file has UNK for the end date.
                 date_field_value = thing[date_field_name]
                 if thing[datetime_field_name] is not None and isinstance(thing[datetime_field_name], datetime.datetime):
-                    date_field_value = thing[datetime_field_name]
+                    date_field_value = strip_tz(thing[datetime_field_name])
                 
                 if date_field_value is not None :
                     # compare dates
@@ -978,11 +984,11 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
                             ##if visit['visit_start_datetime'] is not None:
                             ##    start_visit_date = visit['visit_start_datetime']
                              
-                            start_visit_datetime = visit['visit_start_datetime']
+                            start_visit_datetime = strip_tz(visit['visit_start_datetime'])
                             end_visit_date = visit['visit_end_date']
                             ##if visit['visit_end_datetime'] is not None:
                             ##    end_visit_date = visit['visit_end_datetime']
-                            end_visit_datetime = visit['visit_end_datetime']
+                            end_visit_datetime = strip_tz(visit['visit_end_datetime'])
                             
                             ### Normalize all to datetime.date
                             ###if isinstance(start_visit_date, datetime.datetime):
@@ -1078,14 +1084,14 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
             # Prefer datetime if available
             if thing[start_datetime_field_name] is not None and isinstance(thing[start_datetime_field_name],
                                                                            datetime.datetime):
-                start_date_value = thing[start_datetime_field_name]
+                start_date_value = strip_tz(thing[start_datetime_field_name])
             else:
                 start_date_value = thing[start_date_field_name]
             
             # Prefer datetime if available, else use end_date field, else fallback to start_date
             if thing[end_datetime_field_name] is not None and isinstance(thing[end_datetime_field_name],
                                                                          datetime.datetime):
-                end_date_value = thing[end_datetime_field_name]
+                end_date_value = strip_tz(thing[end_datetime_field_name])
             elif thing[end_date_field_name] is not None:
                end_date_value = thing[end_date_field_name]
             else:
@@ -1096,12 +1102,12 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
                 for visit in visit_dict:
                     try:
                         start_visit_date = visit['visit_start_date']
-                        start_visit_datetime = visit['visit_start_datetime']
+                        start_visit_datetime = strip_tz(visit['visit_start_datetime'])
                         ##if visit['visit_start_datetime'] is not None:
                         ##    start_visit_date = visit['visit_start_datetime']
                                 
                         end_visit_date = visit['visit_end_date']
-                        end_visit_datetime = visit['visit_end_datetime']
+                        end_visit_datetime = strip_tz(visit['visit_end_datetime'])
                         ##if visit['visit_end_datetime'] is not None:
                         ##    end_visit_date = visit['visit_end_datetime']
                         ##
