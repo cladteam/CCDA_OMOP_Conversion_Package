@@ -73,6 +73,16 @@ metadata = {
             'order': 3
     	},
 
+        'condition_concept_domain_id': {
+    	    'config_type': 'DOMAIN',
+    	    'FUNCTION': VT.codemap_xwalk_domain_id,
+    	    'argument_names': {
+    		    'concept_code': 'condition_concept_code',
+    		    'vocabulary_oid': 'condition_concept_codeSystem',
+                'default': 'n/a'
+    	    }
+    	}
+
         'condition_start_date': {  #20081022, #200810221850-0400
     	    'config_type': 'FIELD',
             'data_type':'DATE',
