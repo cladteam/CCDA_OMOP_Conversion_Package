@@ -81,7 +81,7 @@ metadata = {
     		    'vocabulary_oid': 'condition_concept_codeSystem',
                 'default': 'n/a'
     	    }
-    	}
+    	},
 
         'condition_start_date': {  #20081022, #200810221850-0400
     	    'config_type': 'FIELD',
