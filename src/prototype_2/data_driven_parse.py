@@ -798,7 +798,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
                               f"cpt:{output_dict['device_concept_id']}") )
         elif expected_domain_id == "Condition":
             logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} "
-                              f"id:{output_dict['condition_occurrencd_id']} "
+                              f"id:{output_dict['condition_occurrence_id']} "
                               f"cpt:{output_dict['condition_concept_id']}") )
         else:
             logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} "))

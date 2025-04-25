@@ -76,7 +76,7 @@ metadata = {
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'device_concept_id_code',
-    		    'vocabulary_oid': 'device_concept_id_code',
+    		    'vocabulary_oid': 'device_concept_id_codeSystem',
                 'default': 0
     	    }
     	},
