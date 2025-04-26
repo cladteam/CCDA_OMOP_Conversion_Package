@@ -811,12 +811,12 @@ def make_distinct(rows):
         returns another such list, but uniqued
     """
     # make a key of each field, and add to a set
-    seen_rows = set()
+    seen_tuples = set()
     unique_rows = []
     for row in rows:
-        row_tuple = tuple(row) 
-        if row not in seen_rows:
-            seen_rows.add(row_tuple)
+        row_tuple = tuple(row)
+        if row_tuple not in seen_tuples:
+            seen_tuples.add(row_tuple)
             unique_rows.append(row)
     return unique_rows
 
