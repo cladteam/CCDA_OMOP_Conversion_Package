@@ -62,28 +62,27 @@
 
 """
 
-import pandas as pd
-# mamba install -y -q lxml
 
 import argparse
 import datetime
 from dateutil.parser import parse
+import hashlib
 import logging
 import math
 import os
 import pandas as pd
 import sys
-import hashlib
+import traceback
 import zlib
+
 from numpy import int32
 from numpy import int64
-import traceback
 from collections import defaultdict
 from lxml import etree as ET
 from lxml.etree import XPathEvalError
 from typeguard import typechecked
-from prototype_2 import value_transformations as VT
 
+from prototype_2 import value_transformations as VT
 from prototype_2.metadata import get_meta_dict
  
 
@@ -807,6 +806,22 @@ def parse_config_for_single_root(root_element, root_path, config_name,
         return None
 
 
+def make_distinct(rows):
+    """ rows is a list of records/dictionaries
+        returns another such list, but uniqued
+    """
+    # make a key of each field, and add to a set
+    seen_rows = set()
+    unique_rows = []
+    for row in rows:
+        row_tuple = tuple(row) 
+        if row not in seen_rows:
+            seen_rows.add(row_tuple)
+            unique_rows.append(row)
+    return unique_rows
+
+
+
 @typechecked
 def parse_config_from_xml_file(tree, config_name, 
                            config_dict :dict[str, dict[str, str | None]], filename, 
@@ -882,8 +897,9 @@ def parse_config_from_xml_file(tree, config_name,
         print(f"DOMAIN Fields with errors in config {config_name} {error_fields_set}")
         logger.error(f"DOMAIN Fields with errors in config {config_name} {error_fields_set}")
 
-    # distinct
-    output_list=pd.DataFrame(output_list).drop_duplicates().to_dict('records')
+    # distinct: gack, Pandas munges the types
+    #output_list=pd.DataFrame(output_list).drop_duplicates().to_dict('records')
+    output_list = make_distinct(output_list)
 
     return output_list
 
