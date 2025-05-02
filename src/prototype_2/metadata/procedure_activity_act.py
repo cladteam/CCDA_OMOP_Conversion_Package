@@ -23,20 +23,15 @@ metadata = {
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension',
     	},
-        'procedure_occurrence_id_hash': {
+    	'procedure_occurrence_id': {
     	    'config_type': 'HASH',
-            'fields' : [ 'procedure_occurrence_id_root', 'procedure_occurrence_id_extension' ],
-            'priority': ('procedure_occurrence_id', 1)
-    	},
-    	'procedure_occurrence_id_field_hash': {
-    	    'config_type': 'HASH',
-            'fields' : ['person_id', 'visit_occurrence_id', 'procedure_concept_id', 'procedure_datetime'],
-            'priority': ('procedure_occurrence_id', 2)
-    	},
-        'procedure_occurrence_id': {
-            'config_type': 'PRIORITY',
+            'fields' : ['person_id',
+                        #'visit_occurrence_id',
+                        'procedure_concept_code', 'procedure_concept_codeSystem',
+                        'procedure_datetime',
+                        'procedure_occurrence_id_root', 'procedure_occurrence_id_extension'],
             'order': 1
-        },
+    	},
 
     	'person_id': {
     	    'config_type': 'FK',

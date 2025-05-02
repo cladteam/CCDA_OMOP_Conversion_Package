@@ -18,32 +18,22 @@ metadata = {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'root',
-    	},       
+    	},
     	'observation_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension',
     	},
-    	'observation_id_hash': {
+    	'observation_id': {
     	    'config_type': 'HASH',
-            'fields' : [ 'observation_id_extension', 'observation_id_root' ], 
-            'priority': ('observation_id', 1)
-    	},
-    	'observation_id_constant': {
-            'config_type': 'CONSTANT',
-            'constant_value' : 999,
-            'priority': ('observation_id', 100)
-        },
-    	'observation_id_field_hash': {
-    	    'config_type': 'HASH',
-            'fields' : ['person_id', 'visit_occurrence_id', 'observation_concept_id', 'observation_time',
-                    'value_as_string', 'value_as_nmber', 'value_as_concept_id'],
-            'priority': ('observation_id', 2)
-    	},
-        'observation_id': {
-            'config_type': 'PRIORITY',
+            'fields' : ['person_id', 
+                        #'visit_occurrence_id',
+                        'observation_concept_code', 'observation_concept_codeSystem',
+                        'observation_time',
+                        'value_as_string', 'value_as_nmber', 'value_as_concept_id',
+                        'observation_id_extension', 'observation_id_root'],
             'order': 1
-        },
+    	},
 
 
     	'person_id': {

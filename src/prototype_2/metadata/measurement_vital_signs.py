@@ -25,22 +25,16 @@ metadata = {
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension',
     	},
-    	'measurement_id_hash': {
+    	'measurement_id': {
     	    'config_type': 'HASH',
-            'fields' : [ 'measurement_id_root', 'measurement_id_extension' ],
-            'priority': ('measurement_id', 1)
-    	},
-
-        'measurement_id_field_hash': {
-    	    'config_type': 'HASH',
-            'fields' : ['person_id', 'visit_occurrence_id', 'measurement_concept_id', 'measurement_time',
-                    'value_as_string', 'value_as_nmber', 'value_as_concept_id'],
-            'priority': ('measurement_id', 100)
-    	},
-        'measurement_id': {
-            'config_type': 'PRIORITY',
+            'fields' : ['person_id',
+                        #'visit_occurrence_id',
+                        'measurement_concept_code', 'measurement_concept_codeSystem',
+                        'measurement_time',
+                        'value_as_string', 'value_as_nmber', 'value_as_concept_id',
+				        'measurement_id_root', 'measurement_id_extension'],
             'order': 1
-        },
+    	},
 
     	'person_id': {
     	    'config_type': 'FK',

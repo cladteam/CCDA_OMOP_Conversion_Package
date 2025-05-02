@@ -24,12 +24,6 @@ metadata = {
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': "root"
         },
-        'provider_id_element': {
-            'config_type': 'HASH',
-            'fields': [ 'provider_id_root', 'provider_id_extension'],
-            'priority' : ['provider_id', 1]
-        },
-        
         'provider_id_street': {
             'config_type': 'FIELD',
             'element': 'hl7:addr/hl7:streetAddressLine',
@@ -60,14 +54,11 @@ metadata = {
             'element': 'hl7:assignedPerson/hl7:name/hl7:family',
             'attribute': "#text"
         },
-        'provider_id_hash': {
-            'config_type': 'HASH',
-            'fields' : [ 'provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip', 'provider_id_given', 'provider_id_family'],
-            'priority' : ['provider_id', 2]
-        },
-       
         'provider_id': {
-            'config_type': 'PRIORITY',
+            'config_type': 'HASH',
+            'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
+                        'provider_id_given', 'provider_id_family',
+                        'provider_id_root', 'provider_id_extension'],
             'order': 1
         },
 
