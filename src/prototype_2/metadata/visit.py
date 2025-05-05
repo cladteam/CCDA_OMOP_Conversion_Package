@@ -177,7 +177,7 @@ metadata = {
             'data_type':'DATETIME',
             'element': "hl7:effectiveTime/hl7:high[not(@nullFlavor=\"UNK\")]",
     	    'attribute': "value",
-            'priority': ['visit_end_date', 1]
+            'priority': ['visit_end_datetime', 1]
     	},
     	'visit_end_datetime_value': {
     	    'config_type': 'FIELD',

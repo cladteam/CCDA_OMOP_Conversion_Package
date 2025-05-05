@@ -139,7 +139,7 @@ metadata = {
             'data_type':'DATETIME',
     	    'element': "hl7:effectiveTime",
     	    'attribute': "value",
-            'priority':  ['visit_endtime_date', 2]
+            'priority':  ['visit_end_datetime', 2]
     	},
         # too loose! too forgiving? If the high value is UNK, this
         # will use the low date. See #211 for options.
