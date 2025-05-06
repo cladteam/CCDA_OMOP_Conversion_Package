@@ -32,7 +32,7 @@ metadata = {
             'fields' : ['person_id',
                         #'visit_occurrence_id',
                         'observation_concept_code', 'observation_concept_codeSystem',
-			            'observation_time',
+                        'observation_date', 'observation_datetime',
                         'value_as_string', 'value_as_nmber', 'value_as_concept_id',
                         'observation_id_extension', 'observation_id_root'],
             'order': 1

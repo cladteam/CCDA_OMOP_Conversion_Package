@@ -28,8 +28,8 @@ metadata = {
     	    'config_type': 'HASH',
             'fields' : ['person_id', 
                         #'visit_occurrence_id',  'procedure_concept_id', 
-                        'procedure_concept_code',  'procedure_concept_codeSystem', 
-                        'procedure_datetime',
+                        'procedure_concept_id_code', 'procedure_concept_id_codeSystem',
+                        'procedure_date', 'procedure_datetime',
                         'procedure_occurrence_id_root', 'procedure_occurrence_id_extension' ],
             'order': 1
     	},        
