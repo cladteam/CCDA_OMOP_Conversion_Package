@@ -18,27 +18,21 @@ metadata = {
         'device_exposure_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'root',
-            'order': 1001
+            'attribute': 'root'
     	},
     	'device_exposure_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'extension',
-            'order': 1002
-    	},
-    	'device_exposure_id_hash': {
-    	    'config_type': 'HASH',
-            'fields' : ['device_exposure_id_root', 'device_exposure_id_extension'],
-            'priority': ('device_exposure_id', 1)
-    	},
-    	'device_exposure_id_field_hash': {
-    	    'config_type': 'HASH',
-            'fields' : ['person_id', 'visit_occurrence_id', 'device_concept_id', 'device_exposure_start_datetime'],
-            'priority': ('device_exposure_id', 2)
+            'attribute': 'extension'
     	},
         'device_exposure_id': {
-            'config_type': 'PRIORITY',
+    	    'config_type': 'HASH',
+            'fields' : ['person_id',
+                        #'visit_occurrence_id',
+                        'device_concept_id_code', 'device_concept_id_codeSystem',
+                        'device_exposure_start_date', 'device_exposure_start_datetime',
+                        'device_exposure_end_date', 'device_exposure_end_datetime',
+                        'device_exposure_id_root', 'device_exposure_id_extension'],
             'order': 1
         },
 

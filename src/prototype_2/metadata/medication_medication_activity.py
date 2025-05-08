@@ -18,25 +18,23 @@ metadata = {
     	'drug_exposure_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'root',
+            'attribute': 'root'
     	},
     	'drug_exposure_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'extension',
+            'attribute': 'extension'
     	},
-    	'drug_exposure_id_hash': {
-    	    'config_type': 'HASH',
-            'fields' : [ 'drug_exposure_id_root', 'drug_exposure_id_extension' ],
-            'priority': ('drug_exposure_id', 1)
-    	},
-    	'drug_exposure_id_constant': {
-            'config_type': 'CONSTANT',
-            'constant_value' : 999,
-            'priority': ('drug_exposure_id', 2)
-        },
         'drug_exposure_id': {
-            'config_type': 'PRIORITY',
+    	    'config_type': 'HASH',
+            'fields' : ['person_id',
+                        #'visit_occurrence_id',
+                        'drug_concept_code_code', 'drug_concept_codeSystem_code',
+                        'drug_concept_code_translation', 'drug_concept_codeSystem_translation',
+                        'drug_exposure_start_date', 'drug_exposure_start_datetime',
+                        'drug_exposure_end_date', 'drug_exposure_end_datetime',
+                        'quantity',
+                        'drug_exposure_id_root', 'drug_exposure_id_extension'],
             'order': 1
         },
 

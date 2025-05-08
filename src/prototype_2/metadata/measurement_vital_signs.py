@@ -18,12 +18,12 @@ metadata = {
     	'measurement_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'root',
+            'attribute': 'root'
     	},
     	'measurement_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'extension',
+            'attribute': 'extension'
     	},
     	'measurement_id': {
     	    'config_type': 'HASH',
@@ -31,7 +31,7 @@ metadata = {
                         #'visit_occurrence_id',
                         'measurement_concept_code', 'measurement_concept_codeSystem',
 						'measurement_date', 'measurement_datetime',
-                        'value_as_string', 'value_as_nmber', 'value_as_concept_id',
+                        'value_as_number', 'value_as_concept_id',
 				        'measurement_id_root', 'measurement_id_extension'],
             'order': 1
     	},

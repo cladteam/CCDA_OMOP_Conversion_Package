@@ -17,31 +17,21 @@ metadata = {
     	'condition_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'root',
+            'attribute': 'root'
     	},
     	'condition_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'extension',
-    	},
-    	'condition_id_hash': {
-    	    'config_type': 'HASH',
-            'fields' : [ 'condition_id_extension', 'condition_id_root' ],
-            'priority': ('condition_occurrence_id', 1)
-    	},
-    	'condition_id_constant': {
-            'config_type': 'CONSTANT',
-            'constant_value' : 999,
-            'priority': ('condition_occurrence_id', 100)
+            'attribute': 'extension'
         },
-    	'condition_id_field_hash': {
+    	'condition_occurrence_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id', 'visit_occurrence_id', 'condition_concept_id', 'condition_time',
-                    'value_as_string', 'value_as_nmber', 'value_as_concept_id'],
-            'priority': ('condition_occurrence_id', 2)
-    	},
-        'condition_occurrence_id': {
-            'config_type': 'PRIORITY',
+            'fields' : ['person_id',
+                        #'visit_occurrence_id',
+                        'condition_concept_code', 'condition_concept_codeSystem',
+                        'condition_start_date', 'condition_start_datetime',
+                        'condition_end_date', 'condition_end_datetime',
+                        'condition_id_root', 'condition_id_extension'],
             'order': 1
         },
 

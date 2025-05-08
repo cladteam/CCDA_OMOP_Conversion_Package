@@ -18,14 +18,12 @@ metadata = {
     	'observation_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'root',
-            'order': 1001
+            'attribute': 'root'
     	},
     	'observation_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'extension',
-            'order': 1002
+            'attribute': 'extension'
     	},
   	    'observation_id': {
     	    'config_type': 'HASH',
@@ -33,7 +31,7 @@ metadata = {
                         #'visit_occurrence_id',
                         'observation_concept_code', 'observation_concept_codeSystem',
                         'observation_date', 'observation_datetime',
-                        'value_as_string', 'value_as_nmber', 'value_as_concept_id',
+                        'value_as_string', 'value_as_number', 'value_as_concept_id',
                         'observation_id_extension', 'observation_id_root'],
             'order': 1
     	},
