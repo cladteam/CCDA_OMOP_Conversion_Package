@@ -31,7 +31,7 @@ metadata = {
     	},
         'drug_exposure_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id',
+            'fields' : ['person_id',  'provider_id',
                         #'visit_occurrence_id',
                         'drug_concept_code_code', 'drug_concept_codeSystem_code',
                         'drug_concept_code_translation', 'drug_concept_codeSystem_translation',

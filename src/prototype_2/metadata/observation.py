@@ -26,7 +26,7 @@ metadata = {
     	},
     	'observation_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id', 
+            'fields' : ['person_id',  'provider_id',
                         #'visit_occurrence_id',
                         'observation_concept_code', 'observation_concept_codeSystem',
                         'observation_date', 'observation_datetime',

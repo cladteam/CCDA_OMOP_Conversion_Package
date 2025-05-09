@@ -26,7 +26,7 @@ metadata = {
         },
     	'condition_occurrence_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id',
+            'fields' : ['person_id', 'provider_id'
                         #'visit_occurrence_id',
                         'condition_concept_code', 'condition_concept_codeSystem',
                         'condition_start_date', 'condition_start_datetime',

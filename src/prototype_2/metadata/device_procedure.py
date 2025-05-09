@@ -26,7 +26,7 @@ metadata = {
             'attribute': 'extension'
     	},
         'device_exposure_id': {
-    	    'config_type': 'HASH',
+    	    'config_type': 'HASH', 'provider_id',
             'fields' : ['person_id',
                         #'visit_occurrence_id',
                         'device_concept_id_code', 'device_concept_id_codeSystem',

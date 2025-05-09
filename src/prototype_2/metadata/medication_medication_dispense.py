@@ -35,13 +35,14 @@ metadata = {
     	},
         'drug_exposure_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id',
+            'fields' : ['person_id',  'provider_id',
                         #'visit_occurrence_id',
                         'drug_concept_code', 'drug_concept_codeSystem',
                         'drug_exposure_start_date', 'drug_exposure_start_datetime',
                         'drug_exposure_end_date', 'drug_exposure_end_datetime',
                         'quantity',
                         'drug_exposure_id_root', 'drug_exposure_id_extension'],
+                        
             'order': 1
         },
 

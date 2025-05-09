@@ -25,7 +25,7 @@ metadata = {
     	},
     	'procedure_occurrence_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id',
+            'fields' : ['person_id', 'provider_id',
                         #'visit_occurrence_id',
                         'procedure_concept_id_code', 'procedure_concept_id_codeSystem',
                         'procedure_date', 'procedure_datetime',
