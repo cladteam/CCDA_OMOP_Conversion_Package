@@ -30,7 +30,12 @@ metadata = {
 
     	'person_id': { 
        	    'config_type': 'HASH',
-            'fields' : [ 'person_id_root', 'person_id_extension' ], 
+            'fields' : [ 'person_id_root', 'person_id_extension', 
+			             'gender_concept_code', 'gender_concept_codeSystem',
+			             'race_concept_code', 'race_concept_codeSystem',
+			             'gender_concept_code', '_concept_codeSystem',
+						 'ethnicity_concept_code', 'ethnicity_concept_codeSystem',
+						 'birth_datetime', 'address_1', 'city', 'state', 'zip'],
             'order' : 1
         },
         
