@@ -84,7 +84,7 @@ from typeguard import typechecked
 
 from prototype_2 import value_transformations as VT
 from prototype_2.metadata import get_meta_dict
- 
+
 
 logger = logging.getLogger(__name__)
 
@@ -1329,6 +1329,12 @@ def process_file(filepath :str, print_output: bool):
     )
 
     metadata = get_meta_dict()
+    try:
+        from user_mappings import overlay_mappings
+        metadata = metadata | overlay_mappings
+    except Exception as e:
+        print("INFO: no user mappings available, nothing overlaid, using package mappings as-is.")
+
     print(f"    {filepath} parse_doc() ")
     omop_data = parse_doc(filepath, metadata)
     print(f"    {filepath} reconcile_visit()() ")
