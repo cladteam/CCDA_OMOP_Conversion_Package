@@ -333,9 +333,21 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
         # level=logging.INFO
         # level=logging.DEBUG
     )
+     metadata = get_meta_dict()
+    if not metadata:
+        print("eRROR: not able to get metadata in data_driven_parse.py process_file()")
+    else:
+        print("iNFO: got metadata in data_driven_parse.py process_file(), trying for overlay")
+    try:
+        from user_mappings import overlay_mappings
+        metadata = metadata | overlay_mappings
+        print("iNFO: got user mappings  and overlaid them.")
+    except Exception as e:
+        print("iNFO: no user mappings available, nothing overlaid, using package mappings as-is.")
+
 
 #    print(f"   parsing {filepath}")
-    omop_data = DDP.parse_doc(filepath, get_meta_dict())
+    omop_data = DDP.parse_doc(filepath, metadata())
 #    print("   reconciling")
     DDP.reconcile_visit_foreign_keys(omop_data)
     # DDP.print_omop_structure(omop_data)
