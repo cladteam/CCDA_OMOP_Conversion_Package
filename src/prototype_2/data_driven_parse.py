@@ -1329,16 +1329,6 @@ def process_file(filepath :str, print_output: bool):
     )
 
     metadata = get_meta_dict()
-    if not metadata:
-        print("eRROR: not able to get metadata in data_driven_parse.py process_file()")
-    else:
-        print("iNFO: got metadata in data_driven_parse.py process_file(), trying for overlay")
-    try:
-        from user_mappings import overlay_mappings
-        metadata = metadata | overlay_mappings
-        print("iNFO: got user mappings  and overlaid them.")
-    except Exception as e:
-        print("iNFO: no user mappings available, nothing overlaid, using package mappings as-is.")
 
     print(f"    {filepath} parse_doc() ")
     omop_data = parse_doc(filepath, metadata)

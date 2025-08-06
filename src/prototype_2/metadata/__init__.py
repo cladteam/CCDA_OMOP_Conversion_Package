@@ -85,4 +85,12 @@ meta_dict =  location.metadata | \
 
 
 def get_meta_dict():
-    return meta_dict
+    metadata = meta_dict
+    try:
+        from user_mappings import overlay_mappings
+        metadata = meta_dict | overlay_mappings
+        print("iNFO: got user mappings  and overlaid them.")
+    except Exception as e:
+        print("iNFO: no user mappings available, nothing overlaid, using package mappings as-is.")
+        print(f"    {e}")
+    return metadata
