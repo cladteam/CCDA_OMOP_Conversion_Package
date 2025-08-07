@@ -118,6 +118,8 @@ def get_meta_dict():
         except Exception as e:
             print("iNFO: no user mappings available, nothing overlaid, using package mappings as-is.")
             print(f"    {e}")
+
         return metadata
     else:
         print("iNFO: it appears this might be running in a main or master branch, so any user mappings will not be applied, using package mappings as-is.")
+        return metadata
