@@ -1,12 +1,7 @@
 import logging
-#from . import get_codemap_xwalk
-#from . import get_ccda_value_set_mapping_table
-#from . import get_visit_concept_xwalk_mapping
-from . import get_codemap_xwalk_dict
-from . import get_ccda_value_set_mapping_table_dict
-from . import get_visit_concept_xwalk_mapping_dict
 from typeguard import typechecked
 from numpy import int32
+import pandas as pd
 
 """
     Functions for use in DERVIED fields.
@@ -27,6 +22,42 @@ from numpy import int32
 """    
 
 logger = logging.getLogger(__name__)
+
+# --- Start of Moved Code from __init__.py ---
+# These dictionaries are now defined and handled here.
+codemap_xwalk_dict = None
+ccda_value_set_mapping_table_dict = None
+visit_concept_xwalk_mapping_dict = None
+
+
+def set_codemap_xwalk_dict(map):
+    global codemap_xwalk_dict
+    codemap_xwalk_dict = map
+
+
+def get_codemap_xwalk_dict():
+    return codemap_xwalk_dict
+
+
+def set_ccda_value_set_mapping_table_dict(map):
+    global ccda_value_set_mapping_table_dict
+    ccda_value_set_mapping_table_dict = map 
+
+def get_ccda_value_set_mapping_table():
+    return None # TODO
+
+def get_ccda_value_set_mapping_table_dict():
+    return ccda_value_set_mapping_table_dict
+
+
+def set_visit_concept_xwalk_mapping_dict(map):
+    global visit_concept_xwalk_mapping_dict
+    visit_concept_xwalk_mapping_dict = map
+
+def get_visit_concept_xwalk_mapping():
+    return None # TODO 
+def get_visit_concept_xwalk_mapping_dict():
+    return visit_concept_xwalk_mapping_dict
 
 
 def cast_as_string(args_dict):
@@ -135,33 +166,15 @@ def _codemap_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
     return map_dict[column_name]
 
 
-#def _codemap_xwalk_DATASET(vocabulary_oid, concept_code, column_name, default):
-    #df = codemap_xwalk[ (codemap_xwalk['vocab_oid'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
-    # 2025-03-04 new version of codemap schema:
-    #df = codemap_xwalk[ (codemap_xwalk['src_vocab_code_system'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
-    #if len(df) < 1:
-    #if df.count() < 1:
-    #   return default
-    #if len(df) > 1: 
-    #if df.count() > 1:
-    #    logger.warning(f"_codemap_xwalk(): more than one  value for column \"{column_name}\" from \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
-    #if df is None:
-    #    return default
-    #return df[column_name].iloc[0]  # pandas?
-    #$return df.first()[column_name]
-
-    
-    
 ############################################################################
 """
-    table: visit_concept_xwalk_mapping_dataset
+    table: visit_concept_xwalk_mapping
     functions: visit_xwalk...
 """ 
 
 def visit_xwalk_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: concept_id AS INTEGER (because that's what's in the table), not necessarily standard
-        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
     id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_concept_id', args_dict['default']) 
@@ -175,7 +188,6 @@ def visit_xwalk_concept_id(args_dict):
 def visit_xwalk_domain_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: domain_id
-        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
     id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_domain_id', args_dict['default']) 
@@ -189,7 +201,6 @@ def visit_xwalk_domain_id(args_dict):
 def visit_xwalk_source_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: unmapped concept_id AS INTEGER (because that's what's in the table), not necessarily standard
-        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """ 
     id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'source_concept_id', args_dict['default']) 
@@ -205,7 +216,6 @@ def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
 
 def _visit_xwalk_DICTIONARY(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
-        throws/raises when visit_concept_xwalk_mapping_dataset is None
     """
     if get_visit_concept_xwalk_mapping_dict() is None:
         raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/__init__.py for value_transformations.py")
@@ -225,35 +235,17 @@ def _visit_xwalk_DICTIONARY(vocabulary_oid, concept_code, column_name, default):
     return map_dict[column_name]
 
 
-#def _visit_xwalk_DATASET(vocabulary_oid, concept_code, column_name, default):
-#    if get_visit_concept_xwalk_mapping_dataset() is None:
-#        raise Exception("visit_concept_xwalk_mapping_dataset is not initialized in prototype_2/__init__.py for value_transformations.py")
-#    visit_concept_xwalk_mapping_dataset =  get_visit_concept_xwalk_mapping_dataset()
-#    df = visit_concept_xwalk_mapping_dataset[ 
-#        (visit_concept_xwalk_mapping_dataset['codeSystem'] == vocabulary_oid) &
-#        (visit_concept_xwalk_mapping_dataset['src_cd']  == concept_code) ]
-#    #if len(df) < 1:
-#    if df.count() < 1:
-#        return default
-#    #if len(df) > 1:
-#    if df.count() > 1:
-#       logger.warning(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
-#    if df is None:
-#        return default
-#    #return df[column_name].iloc[0]
-    
     
     
 ############################################################################
 """
-    table: ccda_value_set_mapping_table_dataset
+    table: ccda_value_set_mapping_table
     functions: valueset_xwalk...
 """    
 
 def valueset_xwalk_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: concept_id AS INTEGER
-        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
     id_value = _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_concept_id', args_dict['default']) 
@@ -267,7 +259,6 @@ def valueset_xwalk_concept_id(args_dict):
 def valueset_xwalk_domain_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: domain_id
-        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
     id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_domain_id', args_dict['default']) 
@@ -281,7 +272,6 @@ def valueset_xwalk_domain_id(args_dict):
 def valueset_xwalk_source_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: unmapped concept_id AS INTEGER not necessarily standard
-        throws/raises when ccda_value_set_mapping_table_dataset is None
     """
     
     id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
@@ -315,26 +305,6 @@ def _valueset_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
 
     return map_dict[column_name]
 
-
-#def _valueset_xwalk_DATASET(vocabulary_oid, concept_code, column_name, default):
-#    if get_ccda_value_set_mapping_table_dataset() is None:
-#        raise Exception("ccda_value_set_mapping_table_dataset is not initialized in prototype_2/__init__.py for value_transformations.py")
-#
-#    ccda_value_set_mapping_table_dataset =  get_ccda_value_set_mapping_table_dataset()
-#    df = ccda_value_set_mapping_table_dataset[ (ccda_value_set_mapping_table_dataset['codeSystem'] == vocabulary_oid) &
-#                                                   (ccda_value_set_mapping_table_dataset['src_cd']  == concept_code) ]
-#    #if len(df) < 1:
-#    if df.count() < 1:
-#        return default
-#
-#    #if len(df) > 1:
-#    if df.count() > 1:
-#        logger.warning(f"_valueset_xwalk(): more than one  value for column \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
-#
-#    if df is None:
-#        return default
-#    #return df[column_name].iloc[0]
-#    return df.first()[column_name]
 
 ############################################################################
 

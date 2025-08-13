@@ -19,14 +19,11 @@ from numpy import float32
 from numpy import datetime64
 import numpy as np
 import warnings
-from . import value_transformations
-from . import set_codemap_xwalk_dict
-from . import set_ccda_value_set_mapping_table_dict
-from . import set_visit_concept_xwalk_mapping_dict
+from foundry.transforms import Dataset
 
-
-
-
+from .value_transformations import (set_visit_concept_xwalk_mapping_dict, 
+                                    set_ccda_value_set_mapping_table_dict,
+                                    set_codemap_xwalk_dict)
 from prototype_2.ddl import sql_import_dict
 from prototype_2.ddl import config_to_domain_name_dict
 from prototype_2.ddl import domain_name_to_table_name
@@ -197,6 +194,10 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                 print(f"ERROR when creating dataframe for {config_name} \"{ve}\"")
                 show_column_dict(config_name, column_dict)
                 df_dict[config_name] = None
+            except Exception as x:
+                logger.error(f"ERROR exception {config_name}  {x}")
+                show_column_dict(config_name, column_dict)
+                df_dict[config_name] = None
     
 
     return df_dict
@@ -326,32 +327,24 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
 
     logging.basicConfig(
         format='%(levelname)s: %(message)s',
-#        filename=f"logs/log_file_{base_name}.log",
-#        force=True,
          level=logging.ERROR
-        #level=logging.WARNING
-        # level=logging.INFO
-        # level=logging.DEBUG
     )
-#    print(f"   parsing {filepath}")
+    
     omop_data = DDP.parse_doc(filepath, get_meta_dict())
-#    print("   reconciling")
     DDP.reconcile_visit_foreign_keys(omop_data)
-    # DDP.print_omop_structure(omop_data)
+
     if omop_data is not None or len(omop_data) < 1:
-#        print("    creating dataframes")
         dataframe_dict = create_omop_domain_dataframes(omop_data, filepath)
-        
     else:
         logger.error(f"no data from {filepath}")
-        
+        return None
+
     if write_csv_flag:
- #       print("   writing CSVs")
         write_csvs_from_dataframe_dict(dataframe_dict, base_name, "output")
-#    print("   done")
+
     return dataframe_dict
 
-
+    
 @typechecked
 def dict_summary(my_dict):
     for key in my_dict:
@@ -581,6 +574,31 @@ def main():
     
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
+    try:
+        # Get and read the datasets in a single, chained call
+        visit_map_df = Dataset.get("visit_concept_xwalk_mapping_dataset").read_table(format="pandas")
+        valueset_map_df = Dataset.get("ccda_value_set_mapping_table_dataset").read_table(format="pandas")
+
+        # Convert DataFrames to dictionaries for fast lookup
+        visit_map_dict = {
+            (row['src_cd'], row['codeSystem']): row['target_concept_id'] 
+            for _, row in visit_map_df.iterrows()
+        }
+        valueset_map_dict = {
+            (row['src_cd'], row['codeSystem']): row['target_concept_id'] 
+            for _, row in valueset_map_df.iterrows()
+        }
+        
+        # Set the global dictionaries
+        set_visit_concept_xwalk_mapping_dict(visit_map_dict)
+        set_ccda_value_set_mapping_table_dict(valueset_map_dict)
+        
+        logging.info("Successfully loaded and initialized mapping dictionaries.")
+
+    except Exception as e:
+        logger.error(f"Failed to load mapping datasets from Foundry: {e}")
+        return # Exit if mappings cannot be loaded
+
     if True:
         # Single File, put the datasets into the omop_dataset_dict
         if args.filename is not None:

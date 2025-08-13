@@ -12,7 +12,7 @@ def normalize_datetime(dt1, dt2):
         - If one is naive and the other is aware, log a warning and convert the naive datetime to UTC.
     """
     if dt1.tzinfo is not None and dt2.tzinfo is not None:
-        logging.info(f"Both datetime values are timezone-aware. Converting both to UTC.")
+        logging.info("Both datetime values are timezone-aware. Converting both to UTC.")
         return dt1.astimezone(pytz.UTC), dt2.astimezone(pytz.UTC)
 
     elif dt1.tzinfo is None and dt2.tzinfo is None:
@@ -20,7 +20,7 @@ def normalize_datetime(dt1, dt2):
         return dt1, dt2
 
     else:
-        logging.warning(f"Mixing offset-naive and offset-aware datetimes! Converting naive datetime to UTC.")
+        logging.warning("Mixing offset-naive and offset-aware datetimes! Converting naive datetime to UTC.")
         # Convert naive datetime to UTC before comparison
         if dt1.tzinfo is None:
             dt1 = dt1.replace(tzinfo=pytz.UTC)
