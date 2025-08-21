@@ -31,31 +31,28 @@ visit_concept_xwalk_mapping_dict = None
 
 
 def set_codemap_xwalk_dict(map):
+    logger.info(f"set_codemap_xwalk_dict {len(map)} {map[next(iter(map))]}")
     global codemap_xwalk_dict
     codemap_xwalk_dict = map
-
 
 def get_codemap_xwalk_dict():
     return codemap_xwalk_dict
 
 
 def set_ccda_value_set_mapping_table_dict(map):
+    logger.info(f"set_ccda_value_set_mapping_table_dict {len(map)}  {map[next(iter(map))]}")
     global ccda_value_set_mapping_table_dict
     ccda_value_set_mapping_table_dict = map 
-
-def get_ccda_value_set_mapping_table():
-    return None # TODO
 
 def get_ccda_value_set_mapping_table_dict():
     return ccda_value_set_mapping_table_dict
 
 
 def set_visit_concept_xwalk_mapping_dict(map):
+    logger.info(f"set_visit_concept_xwalk_mapping_dict {len(map)}  {map[next(iter(map))]}")
     global visit_concept_xwalk_mapping_dict
     visit_concept_xwalk_mapping_dict = map
 
-def get_visit_concept_xwalk_mapping():
-    return None # TODO 
 def get_visit_concept_xwalk_mapping_dict():
     return visit_concept_xwalk_mapping_dict
 
@@ -97,23 +94,26 @@ def cast_as_concept_id(args_dict):  # TBD FIX TODO
 """
     table: codemap_xwalk
     functions: codemap_xwalk...
-""" 
-    
-    
+"""
+
 def codemap_xwalk_concept_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: concept_id AS INTEGER (because that's what's in the table), not necessarily standard
         throws/raises when codemap_xwalk is None
     """
-    id_value =  _codemap_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
+    id_value = _codemap_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'target_concept_id', args_dict['default']) 
 
     if id_value is not None:
+        logger.info(f"CHRIS(info) codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
+        logger.warning(f"CHRIS(warning)codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
+        logger.error(f"CHRIS(error)codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
         return int32(id_value)
     else:
+        logger.error(f"codemap_xwalk_concept_id concept_id is None  for {args_dict}")
         return None
 
-    
+
 def codemap_xwalk_domain_id(args_dict):
     """ expects: vocabulary_oid, concept_code
         returns: domain_id
@@ -135,7 +135,7 @@ def codemap_xwalk_source_concept_id(args_dict):
     """
     id_value =  _codemap_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
                 'source_concept_id', args_dict['default']) 
-    
+
     if id_value is not None:
         return int32(id_value)
     else:
@@ -148,22 +148,24 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
 
 def _codemap_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
     if get_codemap_xwalk_dict() is None:
-        return None
-    #    raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/__init__.py for value_transformations.py")
+        logger.error("codemap_xwalk_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py")
+        raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py")
 
     codemap_xwalk_mapping_dict= get_visit_concept_xwalk_mapping_dict()
-    map_dict = codemap_xwalk_mapping_dict[(vocabulary_oid, concept_code)]
+    mapping_rows = codemap_xwalk_mapping_dict[(vocabulary_oid, concept_code)]
 
-    if map_dict is None:
+    if mapping_rows is None:
+        logger.error(f"codemap_xwalk_dict mapping_rows is None  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
         return default
 
-    if len(map_dict) < 1:
+    if len(mapping_rows) < 1:
+        logger.error(f"codemap_xwalk_dict mapping_rows is <1 for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
         return default
 
-    if len(map_dict) > 1:
-       logger.warning(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+    if len(mapping_rows) > 1:
+        logger.error(f"_codemap_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
-    return map_dict[column_name]
+    return mapping_rows[0][column_name]
 
 
 ############################################################################
@@ -180,8 +182,10 @@ def visit_xwalk_concept_id(args_dict):
                 'target_concept_id', args_dict['default']) 
 
     if id_value is not None:
+        logger.info(f"visit_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
         return int32(id_value)
     else:
+        logger.error(f"visit_xwalk_concept_id concept_id is None  for {args_dict}")
         return None
 
     
@@ -218,21 +222,24 @@ def _visit_xwalk_DICTIONARY(vocabulary_oid, concept_code, column_name, default):
     """ expects: vocabulary_oid, concept_code
     """
     if get_visit_concept_xwalk_mapping_dict() is None:
-        raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/__init__.py for value_transformations.py")
+        logger.error("visit_concept_xwalk_mapping_dict (logger) is not initialized in prototype_2/value_transformations.py for value_transformations.py")
+        raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py")
 
     visit_concept_xwalk_mapping_dict =  get_visit_concept_xwalk_mapping_dict()
-    map_dict = visit_concept_xwalk_mapping_dict[(vocabulary_oid, concept_code)]
+    mapping_rows = visit_concept_xwalk_mapping_dict[(vocabulary_oid, concept_code)]
 
-    if map_dict is None:
+    if mapping_rows is None:
+        logger.error(f"visit_concept_xwalk_mapping_dict mapping_rows is None  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
         return default
 
-    if len(map_dict) < 1:
+    if len(mapping_rows) < 1:
+        logger.error(f"visit_concept_xwalk_mapping_dict mapping_rows is <1  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
         return default
 
-    if len(map_dict) > 1:
-       logger.warning(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+    if len(mapping_rows) > 1:
+       logger.warn(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
-    return map_dict[column_name]
+    return mapping_rows[0][column_name]
 
 
     
@@ -251,8 +258,10 @@ def valueset_xwalk_concept_id(args_dict):
                 'target_concept_id', args_dict['default']) 
 
     if id_value is not None:
+        logger.info(f"valueset_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
         return int32(id_value)
     else:
+        logger.error(f"valueset_xwalk_concept_id concept_id is None  for {args_dict}")
         return None
     
     
@@ -289,21 +298,24 @@ def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default):
 def _valueset_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
 
     if get_ccda_value_set_mapping_table_dict() is None:
-        raise Exception("ccda_value_set_mapping_table_dict is not initialized in prototype_2/__init__.py for value_transformations.py _valueset_xwalk_DICT()")
+        logger.error("ccda_value_set_mapping_table_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py _valueset_xwalk_DICT()")
+        raise Exception("ccda_value_set_mapping_table_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py _valueset_xwalk_DICT()")
 
     ccda_value_set_mapping_dict =  get_ccda_value_set_mapping_table_dict()
-    map_dict = ccda_value_set_mapping_dict[(vocabulary_oid, concept_code)]
+    mapping_rows = ccda_value_set_mapping_dict[(vocabulary_oid, concept_code)]
 
-    if map_dict is None:
+    if mapping_rows is None:
+        logger.error(f"valueset_xwalk_dict mapping_rows is None  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
         return default
 
-    if len(map_dict) < 1:
+    if len(mapping_rows) < 1:
+        logger.error(f"valueset_xwalk_dict mapping_rows is <1  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
         return default
 
-    if len(map_dict) > 1:
-       logger.warning(f"_valueset_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+    if len(mapping_rows) > 1:
+       logger.warn(f"_valueset_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
-    return map_dict[column_name]
+    return mapping_rows[0][column_name]
 
 
 ############################################################################

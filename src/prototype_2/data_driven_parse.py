@@ -852,12 +852,12 @@ def parse_config_from_xml_file(tree, config_name,
     """
 
     # log to a file per file/config
-    base_name = os.path.basename(filename)
-    logging.basicConfig(
-        format='%(levelname)s: %(message)s',
-#        filename=f"logs/log_config_{base_name}_{config_name}.log",
-        #force=True, level=logging.WARNING)
-        force=True, level=logging.ERROR)
+#    base_name = os.path.basename(filename)
+#    logging.basicConfig(
+#        format='%(levelname)s: %(message)s',
+##        filename=f"logs/log_config_{base_name}_{config_name}.log",
+#        #force=True, level=logging.WARNING)
+#        force=True, level=logging.ERROR)
 
     # Find root
     if 'root' not in config_dict:
@@ -1316,17 +1316,16 @@ def process_file(filepath :str, print_output: bool):
     """
     print(f"PROCESSING {filepath} ")
     logger.info(f"PROCESSING {filepath} ")
-    base_name = os.path.basename(filepath)
-
-    logging.basicConfig(
-        format='%(levelname)s: %(message)s',
-#        filename=f"logs/log_file_{base_name}.log",
-#        force=True,
-        # level=logging.ERROR
-        level=logging.WARNING
-        # level=logging.INFO
-        # level=logging.DEBUG
-    )
+#    base_name = os.path.basename(filepath)
+#    logging.basicConfig(
+#        format='%(levelname)s: %(message)s',
+##        filename=f"logs/log_file_{base_name}.log",
+##        force=True,
+#        # level=logging.ERROR
+#        level=logging.WARNING
+#        # level=logging.INFO
+#        # level=logging.DEBUG
+#    )
 
     metadata = get_meta_dict()
 

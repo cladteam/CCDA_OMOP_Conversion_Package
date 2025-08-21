@@ -13,6 +13,7 @@ except Exception:
 from collections import defaultdict
 import lxml
 import tempfile
+import traceback
 from numpy import int32
 from numpy import int64
 from numpy import float32
@@ -21,13 +22,13 @@ import numpy as np
 import warnings
 from foundry.transforms import Dataset
 
-from .value_transformations import (set_visit_concept_xwalk_mapping_dict, 
-                                    set_ccda_value_set_mapping_table_dict,
-                                    set_codemap_xwalk_dict)
+
+import prototype_2.data_driven_parse as DDP
+import prototype_2.value_transformations as VT
+import prototype_2.util as U
 from prototype_2.ddl import sql_import_dict
 from prototype_2.ddl import config_to_domain_name_dict
 from prototype_2.ddl import domain_name_to_table_name
-import prototype_2.data_driven_parse as DDP
 from prototype_2.metadata import get_meta_dict
 from prototype_2.domain_dataframe_column_types import domain_dataframe_column_types 
 
@@ -53,7 +54,14 @@ from prototype_2.domain_dataframe_column_types import domain_dataframe_column_ty
 #*                                                              *
 warnings.simplefilter(action='ignore', category=FutureWarning) #*
 #*                                                              * 
-#****************************************************************
+#****************************************************************a
+
+logging.basicConfig(
+        filename="layer_datasets.log",
+        filemode="w",
+        level=logging.INFO ,
+        format='%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s' )
+
 logger = logging.getLogger(__name__)
 
 
@@ -228,15 +236,6 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
     """
     base_name = os.path.basename(filepath)
 
-    logging.basicConfig(
-        format='%(levelname)s: %(filename)s %(lineno)d %(message)s',
-#        filename=f"logs/log_file_{base_name}.log",
-#        force=True,
-         #level=logging.ERROR
-         #level=logging.WARNING
-         level=logging.INFO
-        # level=logging.DEBUG
-    )
     logging.info(f"parsing string from {filepath}")
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
     DDP.reconcile_visit_foreign_keys(omop_data)
@@ -260,13 +259,8 @@ def process_string_to_dict_no_codemap(contents, filepath, write_csv_flag, visit_
 
         Returns  dict of column lists
     """
-    set_ccda_value_set_mapping_table_dict(visit_map_dict)
-    set_visit_concept_xwalk_mapping_dict(valueset_map_dict)
-
-    logging.basicConfig(
-        format='%(levelname)s: %(filename)s %(lineno)d %(message)s',
-         level=logging.INFO #level=logging.WARNING
-    )
+    VT.set_ccda_value_set_mapping_table_dict(visit_map_dict)
+    VT.set_visit_concept_xwalk_mapping_dict(valueset_map_dict)
 
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
     DDP.reconcile_visit_foreign_keys(omop_data)
@@ -283,9 +277,9 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
 
         Returns  dict of column lists
     """
-    set_codemap_xwalk_dict(codemap_dict)
-    set_ccda_value_set_mapping_table_dict(visit_map_dict)
-    set_visit_concept_xwalk_mapping_dict(valueset_map_dict)
+    VT.set_codemap_xwalk_dict(codemap_dict)
+    VT.set_ccda_value_set_mapping_table_dict(visit_map_dict)
+    VT.set_visit_concept_xwalk_mapping_dict(valueset_map_dict)
 
 #    # * TEST CONCEPT MAP INITIALIZATON *
 #    # initing the maps is not working, test here, quickly, fail severly
@@ -308,10 +302,6 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
 #        msg="codemap_xwalk test failed to deliver correct code, got: {test_value}"
 #        raise Exception(msg)
 #
-    logging.basicConfig(
-        format='%(levelname)s: %(filename)s %(lineno)d %(message)s',
-         level=logging.INFO #level=logging.WARNING
-    )
 
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
     DDP.reconcile_visit_foreign_keys(omop_data)
@@ -326,11 +316,6 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
     """
     base_name = os.path.basename(filepath)
 
-    logging.basicConfig(
-        format='%(levelname)s: %(message)s',
-         level=logging.ERROR
-    )
-    
     omop_data = DDP.parse_doc(filepath, get_meta_dict())
     DDP.reconcile_visit_foreign_keys(omop_data)
 
@@ -557,7 +542,7 @@ def process_directory(directory_path, export_datasets, write_csv_flag):
         do_export_datasets(domain_dataset_dict)
          
 
-# ENTRY POINT
+# JUPYTER ENTRY POINT
 def main():
     parser = argparse.ArgumentParser(
         prog='CCDA - OMOP parser with datasets layer layer_datasets.py',
@@ -575,32 +560,27 @@ def main():
     args = parser.parse_args()
     print(f"got args:  dataset:{args.dataset} export:{args.export} csv:{args.write_csv} limit:{args.limit}")
     print(args)
+
     
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
     try:
-        # Get and read the datasets in a single, chained call
+        logger.info("starting with maps")
         visit_map_df = Dataset.get("visit_concept_xwalk_mapping_dataset").read_table(format="pandas")
-        valueset_map_df = Dataset.get("ccda_value_set_mapping_table_dataset").read_table(format="pandas")
+        VT.set_visit_concept_xwalk_mapping_dict(U.create_visit_dict(visit_map_df))
 
-        # Convert DataFrames to dictionaries for fast lookup
-        visit_map_dict = {
-            (row['src_cd'], row['codeSystem']): row['target_concept_id'] 
-            for _, row in visit_map_df.iterrows()
-        }
-        valueset_map_dict = {
-            (row['src_cd'], row['codeSystem']): row['target_concept_id'] 
-            for _, row in valueset_map_df.iterrows()
-        }
+        valueset_map_df = Dataset.get("ccda_value_set_mapping_table_dataset").read_table(format="pandas")
+        VT.set_ccda_value_set_mapping_table_dict(U.create_valueset_dict(valueset_map_df))
         
-        # Set the global dictionaries
-        set_visit_concept_xwalk_mapping_dict(visit_map_dict)
-        set_ccda_value_set_mapping_table_dict(valueset_map_dict)
+        codemap_df = Dataset.get("codemap_xwalk").read_table(format="pandas")
+        VT.set_codemap_xwalk_dict(U.create_codemap_dict(codemap_df))
+        
         
         logging.info("Successfully loaded and initialized mapping dictionaries.")
 
     except Exception as e:
         logger.error(f"Failed to load mapping datasets from Foundry: {e}")
+        print(traceback.format_exc(e))
         return # Exit if mappings cannot be loaded
 
     if True:
