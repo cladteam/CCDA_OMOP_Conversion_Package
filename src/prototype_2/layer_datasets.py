@@ -85,8 +85,8 @@ def find_max_columns(config_name :str, domain_list: list[ dict[str, tuple[ None 
     try:
         domain = config_to_domain_name_dict[config_name]
     except Exception as e:
-        print(f"ERROR no domain for {config_name} in {config_to_domain_name_dict.keys()}")
-        print("The config_to_domain_name_dict in ddl.py probably needs this to be added to it.")
+        logger.error(f"ERROR no domain for {config_name} in {config_to_domain_name_dict.keys()}"
+                     "The config_to_domain_name_dict in ddl.py probably needs this to be added to it.")
         raise e
 
     chosen_row =-1
@@ -118,7 +118,6 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
         # Initialize a dictionary of columns from schema
         if domain_list is None or len(domain_list) < 1:
             logger.error(f"No data to create dataframe for {config_name} from {filepath}")
-            ###print(f"ERROR No data to create dataframe for {config_name} from {filepath}")
         else:
             column_list = find_max_columns(config_name, domain_list)
             column_dict = dict((k, []) for k in column_list) #dict.fromkeys(column_list)
@@ -139,7 +138,7 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                                 prepared_value = domain_data_dict[field].replace(tzinfo=None)
                             except Exception as e:
                                 prepared_value = None
-                                print(f"ERROR  TZ {type(domain_data_dict[field])} {domain_data_dict[field]} {field} {e}")
+                                logger.error(f"ERROR  TZ {type(domain_data_dict[field])} {domain_data_dict[field]} {field} {e}")
                         else:
                             prepared_value = domain_data_dict[field]
 
@@ -178,16 +177,16 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                                     domain_df[column_name] = domain_df[column_name].dt.date # datetime still
                                     #domain_df[column_name] = domain_df[column_name].dt.date.astype('object') -- leaves as integer!
                                 except Exception as e:
-                                    print(f"CAST ERROR (to date)  in layer_datasets.py table:{table_name} column:{column_name} type:{column_type}  ")
-                                    print(f"  exception  {domain_df[column_name]}   {type(domain_df[column_name])}")
+                                    logger.error(f"CAST ERROR (to date)  in layer_datasets.py table:{table_name} column:{column_name} type:{column_type}  "
+                                                 f"  exception  {domain_df[column_name]}   {type(domain_df[column_name])}")
                         else:
                             try:
                                 domain_df[column_name] = domain_df[column_name].fillna(0).astype(column_type)  # generates downcasting wwarnings and doesn't throw, 
                                 # domain_df[column_name] = domain_df[column_name].fillna(cast(column_type, 0)).astype(column_type)  # throwss
                                 #domain_df[column_name] = domain_df[column_name].astype(column_type).fillna(0) # cast errors on the None
                             except Exception as e:
-                                print(f"CAST ERROR in layer_datasets.py table:{table_name} column:{column_name} type:{column_type}  ")
-                                print(f"  exception  {domain_df[column_name]}   {type(domain_df[column_name])}")
+                                logger.error(f"CAST ERROR in layer_datasets.py table:{table_name} column:{column_name} type:{column_type}  "
+                                             f"  exception  {domain_df[column_name]}   {type(domain_df[column_name])}")
 
                         # TODO: check whole column for NaN or NaT here
                         null_count = domain_df[column_name].isnull().sum()
@@ -199,12 +198,10 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                 df_dict[config_name] = domain_df
             except ValueError as ve:
                 logger.error(f"ERROR when creating dataframe for {config_name} in {filepath} NO DATA RETURNED \"{ve}\"")
-                print(f"ERROR when creating dataframe for {config_name} in {filepath} NO DATA RETURNED \"{ve}\"")
                 show_column_dict(config_name, column_dict)
                 df_dict[config_name] = None
             except Exception as x:
                 logger.error(f"ERROR exception {config_name} in {filepath} NO DATA RETURNED {x}")
-                print(f"ERROR exception {config_name} in {filepath} NO DATA RETURNED  {x}")
                 show_column_dict(config_name, column_dict)
                 df_dict[config_name] = None
     
@@ -222,7 +219,7 @@ def write_csvs_from_dataframe_dict(df_dict :dict[str, pd.DataFrame], file_name, 
         if domain_dataframe is not None:
             domain_dataframe.to_csv(filepath, sep=",", header=True, index=False)
         else:
-            print(f"ERROR: NOT WRITING domain {config_name} to file {filepath}, no dataframe")
+            logger.error(f"ERROR: NOT WRITING domain {config_name} to file {filepath}, no dataframe")
 
 @typechecked
 def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
@@ -365,16 +362,16 @@ def export_to_foundry(domain_name, df):
     """
     
     if domain_name not in domain_name_to_table_name:
-        print(f"ERROR: not able to map domain:{domain_name} to dataset/table name")
+        logger.error(f"ERROR: not able to map domain:{domain_name} to dataset/table name")
 
     dataset_name = domain_name_to_table_name[domain_name]
-    print(f"EXPORTING: {dataset_name}")
+    logger.info(f"EXPORTING: {dataset_name}")
     try:
         export_dataset = Dataset.get(dataset_name)
         export_dataset.write_table(df)
-        print(f"Successfully exported dataset '{dataset_name}'")
+        logger.info(f"Successfully exported dataset '{dataset_name}'")
     except Exception as e:
-        print(f"    ERROR: {e}")
+        logger.error(f"    ERROR: {e}")
         error_message = str(e)
 
         
@@ -393,7 +390,6 @@ def combine_datasets(omop_dataset_dict):
     file_to_domain_dict = build_file_to_domain_dict(get_meta_dict())
     domain_dataset_dict = {}
     for filename in omop_dataset_dict:
-        ###print(f"key:{filename} {omop_dataset_dict[filename].shape} ")
         domain_id = file_to_domain_dict[filename]
         if domain_id in domain_dataset_dict:
             domain_dataset_dict[domain_id] = pd.concat([ domain_dataset_dict[domain_id], omop_dataset_dict[filename] ])
@@ -406,40 +402,39 @@ def combine_datasets(omop_dataset_dict):
 def do_export_datasets(domain_dataset_dict):
     # export the datasets to Spark/Foundry
     for domain_id in domain_dataset_dict:
-        print(f"Exporting dataset for domain:{domain_id} dim:{domain_dataset_dict[domain_id].shape}")
+        logger.info(f"Exporting dataset for domain:{domain_id} dim:{domain_dataset_dict[domain_id].shape}")
         export_to_foundry(domain_id, domain_dataset_dict[domain_id])      
 
         
 def do_write_csv_files(domain_dataset_dict):
     for domain_id in domain_dataset_dict:
         if domain_id in domain_dataset_dict and domain_dataset_dict[domain_id] is not None:
-            print(f"Writing CSV for domain:{domain_id} dim:{domain_dataset_dict[domain_id].shape}")
+            logger.info(f"Writing CSV for domain:{domain_id} dim:{domain_dataset_dict[domain_id].shape}")
             domain_dataset_dict[domain_id].to_csv(f"output/domain_{domain_id}.csv")
         else:
-            print(f"Error Writing CSV for domain:{domain_id} no such table in dict")
+            logger.error(f"Error Writing CSV for domain:{domain_id} no such table in dict")
  
 
         
 # ENTRY POINT for dataset of files
 def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limit, skip):
-    print("starting dataset:{dataset_name} export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
+    logger.info("starting dataset:{dataset_name} export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
     ccda_documents = Dataset.get(dataset_name)
-    print(ccda_documents.files())
+    logger.info(ccda_documents.files())
     ccda_documents_generator = ccda_documents.files()
     skip_count=0
     file_count=0
     for filegen in ccda_documents_generator:
         if skip>0 and skip_count < skip:
             skip_count+=1
-            #print(f"skipping {os.path.basename(filegen)} {type(filegen)}")
-            print(f"skipping  {skip_count} {type(filegen)}")
+            logger.info(f"skipping  {skip_count} {type(filegen)}")
         else:
             if limit == 0 or file_count < limit:
                 filepath = filegen.download()
                 
-                print(f"PROCESSING {file_count} {os.path.basename(filepath)}  {file_count}  export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
+                logger.info(f"PROCESSING {file_count} {os.path.basename(filepath)}  {file_count}  export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
                 new_data_dict = process_file(filepath, write_csv_flag)
                 
                 for key in new_data_dict:
@@ -457,19 +452,18 @@ def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limi
                 break
             
     domain_dataset_dict = combine_datasets(omop_dataset_dict)
-#    print(f"\n\nEXPORTING?  export:{export_datasets} csv:{write_csv_flag} \n")
     if write_csv_flag:
-        print(f"Writing CSV for input dataset: :q{dataset_name}")
+        logger.info(f"Writing CSV for input dataset: :q{dataset_name}")
         do_write_csv_files(domain_dataset_dict)
 
     if export_datasets:
-        print(f"Exporting dataset for {dataset_name}") 
+        logger.info(f"Exporting dataset for {dataset_name}") 
         do_export_datasets(domain_dataset_dict)
     
     
 # ENTRY POINT for dataset of strings
 def process_dataset_of_strings(dataset_name, export_datasets, write_csv_flag):
-    print(f"DATA SET NAME: {dataset_name}")
+    logger.info(f"DATA SET NAME: {dataset_name}")
     
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     ccda_ds = Dataset.get(dataset_name)
@@ -478,7 +472,6 @@ def process_dataset_of_strings(dataset_name, export_datasets, write_csv_flag):
     # FOR EACH ROW
     if True:
         text=ccda_df.iloc[0,4]
-        print("====")
         doc_regex = re.compile(r'(<ClinicalDocument.*?</ClinicalDocument>)', re.DOTALL)
         # (don't close the opening tag because it has attributes)
         # works: doc_regex = re.compile(r'(<section>.*?</section>)', re.DOTALL)
@@ -566,12 +559,15 @@ def main():
     
     try:
         logger.info("starting with maps")
+        logger.info("xwalk visitmap")
         visit_map_df = Dataset.get("visit_concept_xwalk_mapping_dataset").read_table(format="pandas")
         VT.set_visit_concept_xwalk_mapping_dict(U.create_visit_dict(visit_map_df))
 
+        logger.info("xwalk valuesetmap")
         valueset_map_df = Dataset.get("ccda_value_set_mapping_table_dataset").read_table(format="pandas")
         VT.set_ccda_value_set_mapping_table_dict(U.create_valueset_dict(valueset_map_df))
         
+        logger.info("xwalk codemap")
         codemap_df = Dataset.get("codemap_xwalk").read_table(format="pandas")
         VT.set_codemap_xwalk_dict(U.create_codemap_dict(codemap_df))
         
@@ -580,7 +576,7 @@ def main():
 
     except Exception as e:
         logger.error(f"Failed to load mapping datasets from Foundry: {e}")
-        print(traceback.format_exc(e))
+        logger.error(traceback.format_exc(e))
         return # Exit if mappings cannot be loaded
 
     if True:

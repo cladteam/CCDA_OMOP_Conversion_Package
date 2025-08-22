@@ -1,8 +1,14 @@
-import logging
 from typeguard import typechecked
 from numpy import int32
 import pandas as pd
 
+import logging
+logging.basicConfig(
+        filename="layer_datasets.log",
+        filemode="w",
+        level=logging.INFO ,
+        format='%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s')
+        
 """
     Functions for use in DERVIED fields.
     The configuration for this type of field is:
@@ -105,9 +111,7 @@ def codemap_xwalk_concept_id(args_dict):
                 'target_concept_id', args_dict['default']) 
 
     if id_value is not None:
-        logger.info(f"CHRIS(info) codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
-        logger.warning(f"CHRIS(warning)codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
-        logger.error(f"CHRIS(error)codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
+        logger.debug(f"codemap_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
         return int32(id_value)
     else:
         logger.error(f"codemap_xwalk_concept_id concept_id is None  for {args_dict}")
@@ -182,7 +186,7 @@ def visit_xwalk_concept_id(args_dict):
                 'target_concept_id', args_dict['default']) 
 
     if id_value is not None:
-        logger.info(f"visit_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
+        logger.debug(f"visit_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
         return int32(id_value)
     else:
         logger.error(f"visit_xwalk_concept_id concept_id is None  for {args_dict}")
@@ -258,7 +262,7 @@ def valueset_xwalk_concept_id(args_dict):
                 'target_concept_id', args_dict['default']) 
 
     if id_value is not None:
-        logger.info(f"valueset_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
+        logger.debug(f"valueset_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
         return int32(id_value)
     else:
         logger.error(f"valueset_xwalk_concept_id concept_id is None  for {args_dict}")

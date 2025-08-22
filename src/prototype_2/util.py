@@ -1,4 +1,9 @@
 import logging 
+logging.basicConfig(
+        filename="layer_datasets.log",
+        filemode="w",
+        level=logging.INFO ,
+        format='%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s')
 
 logger = logging.getLogger(__name__)
 """
@@ -24,9 +29,7 @@ logger = logging.getLogger(__name__)
 """
 
 def create_codemap_dict(codemap_df):
-    #  df = codemap_xwalk[ (codemap_xwalk['src_vocab_code_system'] == vocabulary_oid) & (codemap_xwalk['src_code']  == concept_code) ]
-    #  'source_concept_id, 'target_domain_id','target_concept_id'
-    logger.info(f"create_codemap_dict {type(codemap_df)} {len(codemap_df)}")
+    logger.info(f"w xwalk create_codemap_dict {type(codemap_df)} {len(codemap_df)}")
     codemap_dict = {}
     for _, row in codemap_df.iterrows():
         if (row['src_vocab_code_system'], row['src_code']) not in codemap_dict:
@@ -40,7 +43,7 @@ def create_codemap_dict(codemap_df):
     
 
 def create_valueset_dict(codemap_df):
-    logger.info(f"create_valueset_dict {type(codemap_df)}  {len(codemap_df)}")
+    logger.info(f"w xwalk create_valueset_dict {type(codemap_df)}  {len(codemap_df)}")
     codemap_dict = {}
     for _, row in codemap_df.iterrows():
         if (row['codeSystem'], row['src_cd']) not in codemap_dict:
@@ -54,7 +57,7 @@ def create_valueset_dict(codemap_df):
 
 
 def create_visit_dict(codemap_df):
-    logger.info(f"create_visit_dict {type(codemap_df)} {len(codemap_df)}")
+    logger.info(f"w xwalk create_visit_dict {type(codemap_df)} {len(codemap_df)}")
     codemap_dict = {}
     for _, row in codemap_df.iterrows():
         if (row['codeSystem'], row['src_cd']) not in codemap_dict:
