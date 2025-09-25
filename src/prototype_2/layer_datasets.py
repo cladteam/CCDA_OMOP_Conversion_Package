@@ -274,8 +274,8 @@ def process_string_to_dict_no_codemap(contents, filepath, write_csv_flag, visit_
 
         Returns  dict of column lists
     """
-    VT.set_ccda_value_set_mapping_table_dict(visit_map_dict)
-    VT.set_visit_concept_xwalk_mapping_dict(valueset_map_dict)
+    VT.set_ccda_value_set_mapping_table_dict(valueset_map_dict)
+    VT.set_visit_concept_xwalk_mapping_dict(visit_map_dict)
 
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
     DDP.reconcile_visit_foreign_keys(omop_data)
