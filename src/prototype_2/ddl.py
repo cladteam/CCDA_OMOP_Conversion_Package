@@ -76,6 +76,8 @@ config_to_domain_name_dict = {
     'Procedure_activity_procedure' : 'Procedure',
     'Procedure_activity_observation' : 'Procedure',
     'Procedure_activity_act' : 'Procedure',
+    'Procedure_activity_act_observation' : 'Observation',
+    'Procedure_activity_act_measurement':'Measurement',
     'Device' : 'Device',
     'Device_organizer_supply' : 'Device',
     'Device_supply' : 'Device',

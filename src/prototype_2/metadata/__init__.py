@@ -28,6 +28,8 @@ import prototype_2.metadata.immunization_immunization_activity as immunization_i
 import prototype_2.metadata.procedure_activity_procedure as procedure_activity_procedure
 import prototype_2.metadata.procedure_activity_observation as procedure_activity_observation
 import prototype_2.metadata.procedure_activity_act as procedure_activity_act
+import prototype_2.metadata.procedure_activity_act_observation as  procedure_activity_act_observation
+import prototype_2.metadata.procedure_activity_act_measurement as  procedure_activity_act_measurement
 import prototype_2.metadata.device_organizer_supply as device_organizer_supply
 import prototype_2.metadata.device_supply as device_supply
 import prototype_2.metadata.device_organizer_procedure as device_organizer_procedure
@@ -75,6 +77,8 @@ meta_dict =  location.metadata | \
              procedure_activity_procedure.metadata | \
              procedure_activity_observation.metadata | \
              procedure_activity_act.metadata | \
+             procedure_activity_act_measurement.metadata | \
+             procedure_activity_act_observation.metadata | \
              device_organizer_supply.metadata | \
              device_supply.metadata | \
              device_organizer_procedure.metadata | \
