@@ -187,5 +187,4 @@
 		'config_type': 'FILENAME',
 		'order':100
 	} 
-    }
 }
