@@ -46,7 +46,7 @@ metadata = {
     	'observation_id_field_hash': {
     	    'config_type': 'HASH',
             'fields' : ['person_id', 'visit_occurrence_id', 'observation_concept_id', 'observation_time',
-                    'value_as_string', 'value_as_number', 'value_as_concept_id'],
+                    'value_as_number', 'value_as_concept_id'],
             'priority': ('observation_id', 100)
     	},
         'observation_id': {
