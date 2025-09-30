@@ -194,8 +194,12 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                                     # domain_df[column_name] = domain_df[column_name].fillna(cast(column_type, 0)).astype(column_type)  # throwss
                                     # domain_df[column_name] = domain_df[column_name].astype(column_type).fillna(0) # cast errors on the None
                             except Exception as e:
-                                logger.error(f"CAST ERROR in layer_datasets.py table:{table_name} column:{column_name} type:{column_type}  "
-                                             f"  exception  {domain_df[column_name]}   {type(domain_df[column_name])}")
+                                logger.error(f"CAST ERROR in layer_datasets.py create_omop_domain_dataframes() table:{table_name} column:{column_name} type:{column_type}  ")
+                                if column_name in domain_df:
+                                    logger.error(f"    (cont.)   value:{domain_df[column_name]}  type:{type(domain_df[column_name])}")
+                                else:
+                                    logger.error(f"    (cont.)  column \"{column_name}\" is not in the domain_df for domain \"{domain_name}\"")
+                                logger.error(f"    (cont.)  exception:{e}")
 
                         # TODO: check whole column for NaN or NaT here
                         # null_count = domain_df[column_name].isnull().sum()
