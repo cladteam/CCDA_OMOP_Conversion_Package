@@ -1,5 +1,5 @@
-
 from numpy import int32
+from numpy import float32
 import prototype_2.value_transformations as VT
 #
 metadata = {
