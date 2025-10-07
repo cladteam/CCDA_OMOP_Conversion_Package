@@ -347,68 +347,55 @@ metadata = {
 			'constant_value' : int32(32827), 
 			'order': 8 
 		},
-		# FIX TODO sometimes a document will have more than one encounterParticipant. 
-        # The way this is configured, they will be awkwardly merged.
-        # (missing Ex. documents) This might be mitigated by the addition of SDLOC on care_site which
-        # is where this is used. The providers are performers, not participants.
 
-        'provider_id': { 
-			'config_type': 'PRIORITY', 
-			'order': 9 
-		},
         'provider_id_performer_root': { 
 			'config_type': 'FIELD', 
-			'element': "hl7:performer/hl7:assignedEntity/hl7:id[not(@nullFlavor=\"UNK\")]", 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:id[not(@nullFlavor="UNK")]',
 			'attribute': "root", 
 		},
         'provider_id_performer_extension': { 
 			'config_type': 'FIELD', 
-			'element': "hl7:performer/hl7:assignedEntity/hl7:id[not(@nullFlavor=\"UNK\")]", 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:id[not(@nullFlavor="UNK")]',
 			'attribute': "extension", 
 		},
-        'provider_id_performer': { 
-			'config_type': 'HASH', 
-			'fields' : ['provider_id_performer_root', 'provider_id_performer_extension'], 
-			'priority': ['provider_id', 1] 
-		},
-		## TODO FIX, is this address under the perfomer or here in the encounter? Without an "order" attribute to output this, 
-        # the field could be null when used in the hash and not noticed. 
-        # TODO FIX how to test this without a plethora of extra columns? Have the has function throw errors on null fields?
         'provider_id_street': { 
 			'config_type': 'FIELD', 
-			'element': 'hl7:addr/hl7:streetAddressLine', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:streetAddressLine', 
 			'attribute': "#text" 
 		},
         'provider_id_city': { 
 			'config_type': 'FIELD', 
-			'element': 'hl7:addr/hl7:city', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:city', 
 			'attribute': "#text" 
 		},
         'provider_id_state': { 
 			'config_type': 'FIELD', 
-			'element': 'hl7:addr/hl7:state', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:state', 
 			'attribute': "#text" 
 		},
         'provider_id_zip': { 
 			'config_type': 'FIELD', 
-			'element': 'hl7:addr/hl7:postalCode', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:postalCode', 
 			'attribute': "#text" 
 		},
         'provider_id_given': { 
 			'config_type': 'FIELD', 
-			'element': 'hl7:assignedPerson/hl7:name/hl7:given', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:assignedPerson/hl7:name/hl7:given', 
 			'attribute': "#text" 
 		},
         'provider_id_family': { 
 			'config_type': 'FIELD', 
-			'element': 'hl7:assignedPerson/hl7:name/hl7:family', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:assignedPerson/hl7:name/hl7:family', 
 			'attribute': "#text" 
 		},
-        'provider_id_hash': { 
-			'config_type': 'HASH', 
-			'fields' : [ 'provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip', 'provider_id_given', 'provider_id_family'], 
-			'priority' : ['provider_id', 2] 
-		},
+        'provider_id': {
+            'config_type': 'HASH',
+            'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
+                        'provider_id_given', 'provider_id_family',
+                        'provider_id_performer_root', 'provider_id_performer_extension'],
+            'order': 9
+        },
+
         'care_site_id': { 
 			'config_type': 'FIELD', 
 			'data_type': 'LONG', 
