@@ -32,6 +32,7 @@ from prototype_2.ddl import config_to_domain_name_dict
 from prototype_2.ddl import domain_name_to_table_name
 from prototype_2.metadata import get_meta_dict
 from prototype_2.domain_dataframe_column_types import domain_dataframe_column_types 
+from prototype_2.domain_dataframe_column_types import domain_dataframe_column_required
 
 
 """ layer_datasets.py
@@ -105,15 +106,15 @@ def find_max_columns(config_name :str, domain_list: list[ dict[str, tuple[ None 
         row_num += 1
     return domain_list[row_num]
 
-# List of columns allowed to be NULL
-NULL_ALLOWED_COLUMNS = {
-    'drug_exposure_end_date',
-    'drug_exposure_end_datetime',
-    'verbatim_end_date',
-    'condition_end_date',
-    'condition_end_datetime',
-    'device_exposure_end_date',
-    'device_exposure_end_datetime'
+
+# List of columns disallowed to be NULL
+NON_NULLABLE_COLUMNS = {
+    table: [
+        field
+        for field, required in domain_dataframe_column_required[table].items()
+        if required
+    ]
+    for table in domain_dataframe_column_required
 }
 
 @typechecked
@@ -171,7 +172,6 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                             raise Exception(msg)
                     column_dict[field].append(prepared_value)
 
-
             # Use domain_dataframe_colunn_types to cast dataframe columns as directed
             # Create a Pandas dataframe from the data_dict
             try:
@@ -180,13 +180,14 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                 domain_name = config_to_domain_name_dict[config_name]
                 table_name = domain_name_to_table_name[domain_name]
                 if table_name in domain_dataframe_column_types.keys():
+                    non_nullable_cols = NON_NULLABLE_COLUMNS.get(table_name, [])
                     for column_name, column_type in domain_dataframe_column_types[table_name].items():
                         if column_type in [datetime64, DT.date, DT.datetime]:
                             domain_df[column_name] = pd.to_datetime(domain_df[column_name], errors='coerce')
                         else:
                             try:
                                 # Only fill missing values for non-nullable columns
-                                if column_name in NULL_ALLOWED_COLUMNS:
+                                if column_name not in non_nullable_cols:
                                     # leave as None/NaN
                                     domain_df[column_name] = domain_df[column_name]
                                 else:
@@ -201,20 +202,16 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                                     logger.error(f"    (cont.)  column \"{column_name}\" is not in the domain_df for domain \"{domain_name}\"")
                                 logger.error(f"    (cont.)  exception:{e}")
 
-                        # TODO: check whole column for NaN or NaT here
-                        # null_count = domain_df[column_name].isnull().sum()
-                        # if null_count > 0 and column_name not in NULL_ALLOWED_COLUMNS:
-                            # msg=f"nulls in column {column_name}"
-                            # logger.error(f"NULLS in create_omop_domain_dataframes() {msg}")
-                            # raise Exception(msg)
-
-                    # After casting datetimes, drop rows with nulls in disallowed columns
-                    disallowed_cols = [col for col in domain_df.columns if col not in NULL_ALLOWED_COLUMNS]
+                    # After casting datetimes, drop rows with nulls in non-nullable columns
                     before_dropped = len(domain_df)
-                    domain_df = domain_df.dropna(subset=disallowed_cols)
+                    domain_df = domain_df.dropna(subset=non_nullable_cols)
                     after_dropped = len(domain_df)
+
                     if before_dropped != after_dropped:
-                        logger.warning(f"{config_name}: dropped {before_dropped - after_dropped} rows with missing required fields")
+                        logger.warning(
+                            f"{config_name}: dropped {before_dropped - after_dropped} rows with missing required fields "
+                            f"(table={table_name})"
+                            )
 
                 df_dict[config_name] = domain_df
             except ValueError as ve:
