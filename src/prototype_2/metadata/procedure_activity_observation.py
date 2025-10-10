@@ -136,9 +136,15 @@ metadata = {
             'constant_value' : '',
             'order': 14
         },
+        
         'filename' : {
             'config_type': 'FILENAME',
             'order':100
-		}        
+		},
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Procedure_activity_observation',
+			'order':101
+		}      
     }
 }

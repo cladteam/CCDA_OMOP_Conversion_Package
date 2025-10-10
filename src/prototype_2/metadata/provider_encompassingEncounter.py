@@ -155,10 +155,16 @@ metadata = {
             'config_type': None,
             'order' :13
         },
+        
         'filename' : {
             'config_type': 'FILENAME',
             'order':100
-		}
+		},
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Provider_encompassingEncounter',
+			'order':101
+		} 
     },
     
 }

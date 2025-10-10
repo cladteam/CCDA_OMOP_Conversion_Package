@@ -452,7 +452,12 @@ metadata = {
         'filename': { 
             'config_type': 'FILENAME', 
             'order': 100 
-        }
+        },
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Visit',
+			'order':101
+		} 
     }
 }
 

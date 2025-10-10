@@ -50,6 +50,10 @@ metadata = {
             'config_type': 'FILENAME',
             'order':100
         }, 
-
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Location_ee',
+			'order':101
+		} 
     }
 }

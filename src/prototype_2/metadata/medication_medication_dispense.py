@@ -215,9 +215,15 @@ metadata = {
             'attribute': "unit",
             'order': 23
         },
+        
         'filename' : {
             'config_type': 'FILENAME',
             'order':100
-        }
+        },
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Medication_medication_dispense',
+			'order':101
+		}         
     }
 }

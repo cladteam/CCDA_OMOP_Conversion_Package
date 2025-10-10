@@ -159,10 +159,15 @@ metadata = {
             'order' :13
         },
 
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
+	    'filename' : {
+		    'config_type': 'FILENAME',
+		    'order':100
+	    } ,
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Provider',
+			'order':101
+		} 
     },
     
 }

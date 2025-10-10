@@ -167,10 +167,15 @@ metadata = {
             },
             'order':  21
     	},
+		
         'filename' : {
             'config_type': 'FILENAME',
             'order':100
-		}        
-        
+		},       
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Observation_social_history_pregnancy',
+			'order':101
+		}         
     }
 }

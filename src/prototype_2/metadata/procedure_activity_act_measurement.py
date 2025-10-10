@@ -252,9 +252,14 @@ metadata = {
             'order':20
         },
 
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
+	    'filename' : {
+		    'config_type': 'FILENAME',
+		    'order':100
+        },
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Procedure_activity_act_measurement',
+			'order':101
+		} 
     }
 }

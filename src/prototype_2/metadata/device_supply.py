@@ -185,9 +185,15 @@ metadata = {
             },
             'order': 15
         },
+        
        	'filename' : {
 		    'config_type': 'FILENAME',
 		    'order':100
-	    }
+	    },
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Device_supply',
+			'order':101
+		}         
     }
 }

@@ -210,11 +210,16 @@ metadata = {
             'constant_value' : '',
             'order': 18 
         },
-
-	'filename' : {
-		'config_type': 'FILENAME',
-		'order':100
-	} 
+		
+        'filename' : {
+		    'config_type': 'FILENAME',
+		    'order':100
+        },
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Observation',
+			'order':101
+		} 
     }
 }
 
