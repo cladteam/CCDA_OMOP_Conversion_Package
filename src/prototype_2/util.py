@@ -1,3 +1,5 @@
+
+from collections import defaultdict
 import logging 
 logging.basicConfig(
         filename="layer_datasets.log",
@@ -30,14 +32,19 @@ logger = logging.getLogger(__name__)
 
 def create_codemap_dict(codemap_df):
     logger.info(f"w xwalk create_codemap_dict {type(codemap_df)} {len(codemap_df)}")
-    codemap_dict = {}
+    codemap_dict = defaultdict(list)
     for _, row in codemap_df.iterrows():
-        if (row['src_vocab_code_system'], row['src_code']) not in codemap_dict:
-            codemap_dict[(row['src_vocab_code_system'], row['src_code'])] = []
-        codemap_dict[(row['src_vocab_code_system'], row['src_code'])].append({
-            'source_concept_id': row['source_concept_id'],
-            'target_domain_id': row['target_domain_id'],
-            'target_concept_id': row['target_concept_id'] })
+        code_system = row['src_vocab_code_system']
+        if code_system is not None and isinstance(code_system, str):
+            code_system = code_system.strip()
+        code = row['src_code']
+        if code is not None and isinstance(code_system, str):
+            code = code.strip()
+        codemap_dict[(code_system,  code)].append({
+            'source_concept_id': row['source_concept_id'],  # dont' strip() integers
+            'target_domain_id': row['target_domain_id'].strip(),
+            'target_concept_id': row['target_concept_id']  # don't strip() integers
+        })
 
     return codemap_dict
     

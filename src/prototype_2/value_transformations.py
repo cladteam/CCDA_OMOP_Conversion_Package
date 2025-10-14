@@ -156,16 +156,17 @@ def codemap_xwalk_source_concept_id(args_dict):
 
 
 def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
-    return _codemap_xwalk_DICT(vocabulary_oid, concept_code, column_name, default)
 
-
-def _codemap_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
     if get_codemap_xwalk_dict() is None:
         logger.error("codemap_xwalk_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py")
         raise Exception("visit_concept_xwalk_mapping_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py")
+    codemap_xwalk_mapping_dict= get_codemap_xwalk_dict()
 
-    codemap_xwalk_mapping_dict= get_visit_concept_xwalk_mapping_dict()
-    mapping_rows = codemap_xwalk_mapping_dict[(vocabulary_oid, concept_code)]
+    if (vocabulary_oid, concept_code) in codemap_xwalk_mapping_dict:
+        mapping_rows = codemap_xwalk_mapping_dict[(vocabulary_oid, concept_code)]
+    else:
+        logger.error(f"value_transformations.py _codemap_xwalk vocabulary_id:\"{vocabulary_oid}\" ,{type(vocabulary_oid)}, code:\"{concept_code}\", {type(concept_code)}  not present or not found")
+        return default
 
     if mapping_rows is None:
         logger.error(f"codemap_xwalk_dict mapping_rows is None  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
@@ -178,7 +179,12 @@ def _codemap_xwalk_DICT(vocabulary_oid, concept_code, column_name, default):
     if len(mapping_rows) > 1:
         logger.error(f"_codemap_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
 
-    return mapping_rows[0][column_name]
+    if column_name in mapping_rows[0]:
+        column_value =  mapping_rows[0][column_name]
+    else:
+        logger.error(f"value_transformations.py _codemap_xwalk doens't have the column{column_name}....{mapping_rows[0]}")
+        logger.error("f (cont) {mapping_rows}")
+    return column_value
 
 
 ############################################################################

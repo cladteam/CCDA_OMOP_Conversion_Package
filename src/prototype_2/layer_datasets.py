@@ -591,15 +591,22 @@ def main():
         logger.info("starting with maps")
         logger.info("xwalk visitmap")
         visit_map_df = Dataset.get("visit_concept_xwalk_mapping_dataset").read_table(format="pandas")
-        VT.set_visit_concept_xwalk_mapping_dict(U.create_visit_dict(visit_map_df))
+        visitmap_dict = U.create_visit_dict(visit_map_df)
+        logger.error(f"VISITMAP  {len(visitmap_dict)}")
+        VT.set_visit_concept_xwalk_mapping_dict(visitmap_dict)
 
         logger.info("xwalk valuesetmap")
         valueset_map_df = Dataset.get("ccda_value_set_mapping_table_dataset").read_table(format="pandas")
-        VT.set_ccda_value_set_mapping_table_dict(U.create_valueset_dict(valueset_map_df))
+        valueset_dict = U.create_valueset_dict(valueset_map_df)
+        logger.error(f"VALUESET  {len(valueset_dict)}")
+        VT.set_ccda_value_set_mapping_table_dict(valueset_dict)
         
         logger.info("xwalk codemap")
         codemap_df = Dataset.get("codemap_xwalk").read_table(format="pandas")
-        VT.set_codemap_xwalk_dict(U.create_codemap_dict(codemap_df))
+        codemap_dict = U.create_codemap_dict(codemap_df)
+        logger.error(f"CODEMAP  {len(codemap_dict)}")
+        VT.set_codemap_xwalk_dict(codemap_dict)
+
         
         
         logger.info("Successfully loaded and initialized mapping dictionaries.")
