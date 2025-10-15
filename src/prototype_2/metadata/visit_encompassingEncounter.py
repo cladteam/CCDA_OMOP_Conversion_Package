@@ -14,7 +14,62 @@ metadata = {
 			 # encompassingEncounter in header
             'element': './hl7:componentOf/hl7:encompassingEncounter'
         },
-        
+
+        # NOTE: provider_id (column 9) is defined before visit_occurrence_id (column 1)
+        # Reason: visit_occurrence_id hash depends on provider_id.
+        # Fields are processed in the order they appear here. The 'order' attribute tells
+        # the order of the columns in the resulting table. They are often the same, but not here. 
+        # This ensures provider_id is fully resolved before computing visit_occurrence_id,
+        # preventing incomplete or duplicate visit hashes.
+
+        'provider_id_performer_root': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:id[not(@nullFlavor="UNK")]',
+			'attribute': "root", 
+		},
+        'provider_id_performer_extension': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:id[not(@nullFlavor="UNK")]',
+			'attribute': "extension", 
+		},
+        'provider_id_street': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:streetAddressLine', 
+			'attribute': "#text" 
+		},
+        'provider_id_city': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:city', 
+			'attribute': "#text" 
+		},
+        'provider_id_state': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:state', 
+			'attribute': "#text" 
+		},
+        'provider_id_zip': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:postalCode', 
+			'attribute': "#text" 
+		},
+        'provider_id_given': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:assignedPerson/hl7:name/hl7:given', 
+			'attribute': "#text" 
+		},
+        'provider_id_family': { 
+			'config_type': 'FIELD', 
+			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:assignedPerson/hl7:name/hl7:family', 
+			'attribute': "#text" 
+		},
+        'provider_id': {
+            'config_type': 'HASH',
+            'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
+                        'provider_id_given', 'provider_id_family',
+                        'provider_id_performer_root', 'provider_id_performer_extension'],
+            'order': 9
+        },
+
         'visit_occurrence_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
@@ -29,8 +84,8 @@ metadata = {
             'config_type': 'HASH',
             'fields' : ['visit_occurrence_id_root', 'visit_occurrence_id_extension',
                         'person_id', 'provider_id',
-                        'visit_concept_id',
-                        'visit_start_date', 'visit_start_datetime'
+                        'visit_concept_id', 'visit_source_value',
+                        'visit_start_date', 'visit_start_datetime',
                         'visit_end_date', 'visit_end_datetime'],
             'order' : 1
         },
@@ -351,54 +406,6 @@ metadata = {
 			'constant_value' : int32(32827), 
 			'order': 8 
 		},
-
-        'provider_id_performer_root': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:id[not(@nullFlavor="UNK")]',
-			'attribute': "root", 
-		},
-        'provider_id_performer_extension': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:id[not(@nullFlavor="UNK")]',
-			'attribute': "extension", 
-		},
-        'provider_id_street': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:streetAddressLine', 
-			'attribute': "#text" 
-		},
-        'provider_id_city': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:city', 
-			'attribute': "#text" 
-		},
-        'provider_id_state': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:state', 
-			'attribute': "#text" 
-		},
-        'provider_id_zip': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:addr/hl7:postalCode', 
-			'attribute': "#text" 
-		},
-        'provider_id_given': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:assignedPerson/hl7:name/hl7:given', 
-			'attribute': "#text" 
-		},
-        'provider_id_family': { 
-			'config_type': 'FIELD', 
-			'element': 'hl7:encounterParticipant[@typeCode="ATND"]/hl7:assignedEntity/hl7:assignedPerson/hl7:name/hl7:family', 
-			'attribute': "#text" 
-		},
-        'provider_id': {
-            'config_type': 'HASH',
-            'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
-                        'provider_id_given', 'provider_id_family',
-                        'provider_id_performer_root', 'provider_id_performer_extension'],
-            'order': 9
-        },
 
         'care_site_id': { 
 			'config_type': 'FIELD', 
