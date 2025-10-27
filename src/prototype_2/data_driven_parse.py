@@ -770,8 +770,9 @@ def parse_config_for_single_root(root_element, root_path, config_name,
     # Loose: roll with not having concept mapping
     # if (expected_domain_id == domain_id or domain_id is None):
 
-    # Strict
-    if (expected_domain_id == domain_id):
+    # Strict, don't expect a domain id from non-domain tables
+    if (expected_domain_id == domain_id
+        or expected_domain_id in ['Person', 'Location', 'Care_Site', 'Provider', 'Visit']):
 
         if expected_domain_id == "Observation":
             logger.warning((f"ACCEPTING {domain_id} "
