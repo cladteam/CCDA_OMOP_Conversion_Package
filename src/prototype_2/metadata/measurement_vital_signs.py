@@ -63,8 +63,8 @@ metadata = {
             'order': 3
     	},
 
-    	'measurement_concept_domain_id': {
-    	    'config_type': 'DOMAIN',
+    	'domain_id': {
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'measurement_concept_code',

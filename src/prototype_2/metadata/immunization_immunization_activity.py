@@ -71,13 +71,14 @@ metadata = {
     	},
 
     	'drug_concept_domain_id_code': {
-    	    'config_type': 'DOMAIN',
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'drug_concept_code_code',
     		    'vocabulary_oid': 'drug_concept_codeSystem_code',
                 'default': 0
-    	    }
+    	    },
+            'priority': ('domain_id', 1)
     	},
 
     	'drug_concept_code_translation': {
@@ -102,18 +103,23 @@ metadata = {
     	},
 
     	'drug_concept_domain_id_translation': {
-    	    'config_type': 'DOMAIN',
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'drug_concept_code_translation',
     		    'vocabulary_oid': 'drug_concept_codeSystem_translation',
                 'default': 0
-    	    }
+    	    },
+            'priority': ('domain_id', 2)
     	},
         
         'drug_concept_id': {
             'config_type': 'PRIORITY',
             'order' : 3
+        },                  
+        
+        'domain_id': {
+            'config_type': 'PRIORITY'
         },                  
         
         'drug_exposure_start_date': {

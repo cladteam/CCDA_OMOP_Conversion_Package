@@ -74,8 +74,8 @@ metadata = {
             'order': 3
     	},
 
-    	'drug_concept_domain_id': {
-    	    'config_type': 'DOMAIN',
+    	'domain_id': {
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'drug_concept_code',
@@ -83,6 +83,7 @@ metadata = {
                 'default': 0
     	    }
     	},
+        
         'drug_exposure_start_date_value': {
             'config_type': 'FIELD',
             'element': "hl7:effectiveTime", 

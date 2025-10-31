@@ -63,8 +63,8 @@ metadata = {
             'order': 3
     	},
 
-        'condition_concept_domain_id': {
-    	    'config_type': 'DOMAIN',
+        'domain_id': {
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'condition_concept_code',

@@ -81,8 +81,8 @@ metadata = {
             'order': 3
     	},
 
-    	'measurement_concept_domain_id': {
-    	    'config_type': 'DOMAIN',
+    	'domain_id': {
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
     		    'concept_code': 'measurement_concept_code',
@@ -90,7 +90,7 @@ metadata = {
                 'default': 0
     	    }
     	},
-    	# FIX same issue as above. Is it always just a single value, or do we ever get high and low?
+		
         'measurement_date': {
     	    'config_type': 'FIELD',
             'data_type':'DATE',

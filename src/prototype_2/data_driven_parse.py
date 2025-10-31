@@ -505,89 +505,8 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
             except: # Error as er:
 #                logger.error(f"DERIVED error: {er}")
                 output_dict[field_tag] = None
+
                 
-@typechecked
-def do_domain_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
-                     root_element, root_path, config_name, 
-                     config_dict :dict[str, dict[str, str | None]], 
-                     error_fields_set :set[str]) -> str | None :
-    # nearly the same as derived above, but returns the domain for later filtering
-    domain_id = None
-    have_domain_field = False
-    for (field_tag, field_details_dict) in config_dict.items():
-        if field_details_dict['config_type'] == 'DOMAIN':
-            have_domain_field = True
-            logger.info(f"     Deriving DOMAIN {field_tag}, {field_details_dict}")
-
-            # Collect args for the function
-            args_dict = {}
-            for arg_name, field_name in field_details_dict['argument_names'].items():
-                if arg_name == 'default':
-                        args_dict[arg_name] = field_name
-                else:
-                    logger.info(f"     -- {field_tag}, arg_name:{arg_name} field_name:{field_name}")
-                    if field_name not in output_dict:
-                        error_fields_set.add(field_tag)
-                        logger.error((f"DOMAIN config:{config_dict} field:{field_tag} could not "
-                                      f"find {field_name} in {output_dict}"))
-                    try:
-                        args_dict[arg_name] = output_dict[field_name]
-                    except Exception:
-                        error_fields_set.add(field_tag)
-                        logger.error((f"DOMAIN {field_tag} arg_name: {arg_name} field_name:{field_name}"
-                                      f" args_dict:{args_dict} output_dict:{output_dict}"))
-                    except Exception as e:
-                        logger.error(f"DERIVED exception: {e}")
-                        output_dict[field_tag] = None
-                    except: # Error as er:
-#                        logger.error(f"DERIVED error: {er}")
-                        output_dict[field_tag] = None
-                    
-            # Derive the value
-            try:
-                function_reference = field_details_dict['FUNCTION']
-                function_value = field_details_dict['FUNCTION'](args_dict)
-                if function_reference != VT.concat_fields and (function_value is None or function_value == 0): 
-                    logger.error((f"do_domain_fields(): No mapping back for {config_name} {field_tag} "
-                                  f"from {field_details_dict['FUNCTION']} {args_dict}   {config_dict[field_tag]}"
-                                  "If this is from a value_as_concept/code field, it may not be an error, but "
-                                  "an artificat of data that doesn't have a value or one that is not "
-                                  "meant as a concept id"))
-                domain_id = function_value
-                output_dict[field_tag] = function_value
-                logger.info((f"     DOMAIN captured as {function_value} for "
-                                 f"{field_tag}, {field_details_dict}"))
-            except KeyError as e:
-                error_fields_set.add(field_tag)
-                logger.error(f"DERIVED exception: {e}")
-                logger.error(f"DERIVED {field_tag} can't find argument in {args_dict}")
-            except TypeError as e:
-                error_fields_set.add(field_tag)
-                logger.error(f"DERIVED exception: {e}")
-                logger.error((f"DERIVED {field_tag} possibly calling something that isn't a function"
-                              f" {field_details_dict['FUNCTION']}. You may have quotes "
-                              "around it in  a python mapping structure if this is a "
-                              f"string: {type(field_details_dict['FUNCTION'])}"))
-                output_dict[field_tag] = None
-            except Exception as e:
-                logger.error(f"DERIVED exception: {e}")
-                output_dict[field_tag] = None
-            except: #Error as er:
-#                logger.error(f"DERIVED error: {e}")
-                output_dict[field_tag] = None
-
-    if domain_id == 0: # TODO, we should decide between 0/NMC and None for an unknown domain_id
-        ###print(f"DEBUG got 0 for a domain_id, returning None in do_domain_fields(). {config_name}")
-        if not have_domain_field:
-            logger.error(f"ERROR didn't find a field of type DOMAIN in config {config_name}.")
-            print(f"ERROR didn't find a field of type DOMAIN in config {config_name}")
-        else:
-            logger.error(f"ERROR didn't get a DOMAIN value in config {config_name}, check if the concept maps have this concept.")
-        return None
-    else:
-        return domain_id
-
-
 @typechecked
 def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                    root_element, root_path, config_name,  
@@ -699,7 +618,7 @@ def get_filter_fn(dict):
 
 
 @typechecked
-def sort_output_dict(output_dict :dict[str, None | str | float | int | int64], 
+def sort_output_and_omit_dict(output_dict :dict[str, None | str | float | int | int64], 
                      config_dict :dict[str, dict[str, str | None]], config_name):
     """ Sorts the ouput_dict by the value of the 'order' fields in the associated
         config_dict. Fields without a value, or without an entry used to 
@@ -747,7 +666,6 @@ def parse_config_for_single_root(root_element, root_path, config_name,
     do_filename_fields(output_dict, root_element, root_path, config_name, config_dict, error_fields_set, filename)
     do_basic_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
     do_derived_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
-    domain_id = do_domain_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
     do_foreign_key_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
 
     # NOTE: Order of operations is important here. do_priority_fields() must run BEFORE do_hash_fields().
@@ -761,16 +679,11 @@ def parse_config_for_single_root(root_element, root_path, config_name,
                  f"we have tag:{root_element.tag}"
                  f" attributes:{root_element.attrib}"))
 
-
-    output_dict = sort_output_dict(output_dict, config_dict, config_name)
-
-
+    domain_id = output_dict.get('domain_id', None) # fetch this before it gets omitted
+    output_dict = sort_output_and_omit_dict(output_dict, config_dict, config_name)
     expected_domain_id = config_dict['root']['expected_domain_id']
 
-    # Loose: roll with not having concept mapping
-    # if (expected_domain_id == domain_id or domain_id is None):
-
-    # Strict, don't expect a domain id from non-domain tables
+    # Strict: null domain_id is not good, but don't expect a domain id from non-domain tables
     if (expected_domain_id == domain_id
         or expected_domain_id in ['Person', 'Location', 'Care_Site', 'Provider', 'Visit']):
 

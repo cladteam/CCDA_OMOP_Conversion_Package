@@ -66,19 +66,16 @@ metadata = {
             'priority': ('drug_concept_id', 1)
     	},
         
-# see ticket #238, and also #236, #237
-#    	'drug_concept_domain_id_code': {
-#    	    'config_type': 'DOMAIN',
-#    	    'FUNCTION': VT.codemap_xwalk_domain_id,
-#    	    'argument_names': {
-#    		    'concept_code': 'drug_concept_code_code',
-#    		    'vocabulary_oid': 'drug_concept_codeSystem_code',
-#                'default': 0
-#    	    }
-#    	},
-    #										<code codeSystem="2.16.840.1.113883.6.88" nullFlavor="OTH">
-	#										<translation code="410942007" codeSystem="2.16.840.1.113883.6.96" codeSystemName="SNOMED CT" displayName="drug or medication"/>
-	#									</code>
+    	'domain_id_code': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_domain_id,
+    	    'argument_names': {
+    		    'concept_code': 'drug_concept_code_code',
+    		    'vocabulary_oid': 'drug_concept_codeSystem_code',
+                'default': 0
+    	    },
+            'priority': ('domain_id', 1)
+    	},
         
     	'drug_concept_code_translation': {
     	    'config_type': 'FIELD',
@@ -105,16 +102,21 @@ metadata = {
             'order': 3
         },   
 
-# see ticket #238, and also #236, #237
-#    	'drug_concept_domain_id_translation': {
-#    	    'config_type': 'DOMAIN',
-#    	    'FUNCTION': VT.codemap_xwalk_domain_id,
-#    	    'argument_names': {
-#    		    'concept_code': 'drug_concept_code_translation',
-#    		    'vocabulary_oid': 'drug_concept_codeSystem_translation',
-#                'default': 0
-#    	    }
-#    	},
+    	'domain_id_translation': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_domain_id,
+    	    'argument_names': {
+    		    'concept_code': 'drug_concept_code_translation',
+    		    'vocabulary_oid': 'drug_concept_codeSystem_translation',
+                'default': 0
+    	    },
+            'priority': ('domain_id', 1)
+    	},
+
+        'domain_id': {
+            'config_type': 'PRIORITY',
+        },   
+
         
                
 
