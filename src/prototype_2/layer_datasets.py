@@ -578,7 +578,7 @@ def main():
         codemap_df = Dataset.get("codemap_xwalk").read_table(format="pandas")
         codemap_dict = U.create_codemap_dict(codemap_df)
         logger.error(f"CODEMAP  {len(codemap_dict)}")
-        VT.set_codemap_xwalk_dict(codemap_dict)
+        VT.set_codemap_dict(codemap_dict)
 
         
         

@@ -425,12 +425,20 @@ metadata = {
             'order': 8 
         },
 
-        'care_site_id': { 
-            'config_type': 'FIELD', 
-            'data_type': 'LONG', 
-            'element': 'participant/participantRole[@classCode="SDLOC"]/id', 
-            'attribute': "root", 
-            'order': 10 
+        'care_site_id_root': {
+            'config_type': 'FIELD',
+            'element': 'hl7:participant/hl7:participantRole[@classCode="SDLOC"]/hl7:id',
+            'attribute': "root",
+        },
+        'care_site_id_extension': {
+            'config_type': 'FIELD',
+            'element': 'hl7:participant/hl7:participantRole[@classCode="SDLOC"]/hl7:id',
+            'attribute': "extension",
+        },
+        'care_site_id': {
+            'config_type': 'HASH',
+            'fields': ['care_site_id_root', 'care_site_id_extension'],
+            'order': 10
         },
         
         'admitting_source_concept_id': { 
