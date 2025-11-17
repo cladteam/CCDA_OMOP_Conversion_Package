@@ -4,26 +4,29 @@ from numpy import int32
 #
 metadata = {
     'Device_organizer_procedure': {
-    	'root': {
+        'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Device',
             # Medical equipment section, entry, organizer, component, procedure
     	    'element':
-    		  ("./hl7:component/hl7:structuredBody/hl7:component/hl7:section/"
-    		   "hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.23']"
-    		   "/../hl7:entry/hl7:organizer[@moodCode='EVN' and hl7:component/hl7:procedure]/"
-               "hl7:statusCode[@code='active' or @code='completed']/.."
-               "/hl7:component/hl7:procedure")
+    		  ("./hl7:component/hl7:structuredBody/hl7:component/hl7:section"
+    		   "/hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.23']"
+    		   "/../hl7:entry/hl7:organizer[@moodCode='EVN' and hl7:component/hl7:procedure]"
+               "/hl7:statusCode[@code='active' or @code='completed']/.."
+               "/hl7:component/hl7:procedure"
+               "/hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice")
         },
 
         'device_exposure_id_root': {
             'config_type': 'FIELD',
-            'element': 'hl7:id[not(@nullFlavor="UNK")]',
+            #'element': 'hl7:id[not(@nullFlavor="UNK")]',
+            'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'root'
     	},
     	'device_exposure_id_extension': {
             'config_type': 'FIELD',
-            'element': 'hl7:id[not(@nullFlavor="UNK")]',
+            #'element': 'hl7:id[not(@nullFlavor="UNK")]',
+            'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension'
     	},
         'device_exposure_id': {
@@ -46,12 +49,14 @@ metadata = {
         # participant[@typeCode='DEV']/participantRole/playingDevice/..
     	'device_concept_id_code': {
     	    'config_type': 'FIELD',
-    	    'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice/hl7:code" ,
+    	    #'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice/hl7:code" ,
+    	    'element': "hl7:code" ,
     	    'attribute': "code"
     	},
     	'device_concept_id_codeSystem': {
     	    'config_type': 'FIELD',
-    	    'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice/hl7:code",
+    	    #'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice/hl7:code",
+    	    'element': "hl7:code",
     	    'attribute': "codeSystem"
     	},
     	'device_concept_id': {
@@ -82,21 +87,24 @@ metadata = {
         'device_exposure_start_date_procedure_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-    	    'element': "hl7:effectiveTime/hl7:low",
+    	    #'element': "hl7:effectiveTime/hl7:low",
+    	    'element': "../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_date', 1)
     	},
         'device_exposure_start_date_procedure_value': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-    	    'element': "hl7:effectiveTime",
+    	    #'element': "hl7:effectiveTime",
+    	    'element': "../../../hl7:effectiveTime",
     	    'attribute': "value",
             'priority': ('device_exposure_start_date', 2)
     	},
         'device_exposure_start_date_organizer_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-    	    'element': "../../hl7:effectiveTime/hl7:low",
+    	    #'element': "../../hl7:effectiveTime/hl7:low",
+    	    'element': "../../../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_date', 3)
     	},
@@ -108,28 +116,32 @@ metadata = {
         'device_exposure_start_datetime_procedure_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATETIME',
-    	    'element': "hl7:effectiveTime/hl7:low",
+    	    #'element': "hl7:effectiveTime/hl7:low",
+    	    'element': "../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_datetime', 1)
     	},
         'device_exposure_start_datetime_procedure_value': {
     	    'config_type': 'FIELD',
             'data_type': 'DATETIME',
-    	    'element': "hl7:effectiveTime",
+    	    #'element': "hl7:effectiveTime",
+    	    'element': "../../../hl7:effectiveTime",
     	    'attribute': "value",
             'priority': ('device_exposure_start_datetime', 2)
     	},
         'device_exposure_start_datetime_organizer_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATETIME',
-    	    'element': "../../hl7:effectiveTime/hl7:low",
+    	    #'element': "../../hl7:effectiveTime/hl7:low",
+    	    'element': "../../../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_datetime', 3)
     	},
         
         'device_exposure_end_date': {
             'config_type': 'FIELD',
-            'element': "../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
+            #'element': "../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
+            'element': "../../../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
             'attribute': "value",
             'data_type': 'DATE',
             'order': 6
@@ -137,7 +149,8 @@ metadata = {
 
         'device_exposure_end_datetime': {
             'config_type': 'FIELD',
-            'element': "../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
+            #'element': "../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
+            'element': "../../../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
             'attribute': "value",
             'data_type': 'DATETIME',
             'order': 7
@@ -152,7 +165,8 @@ metadata = {
         # participant[@typeCode='DEV']/participantRole/..
         'unique_device_id':{
             'config_type': 'FIELD',
-            'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:id[@root='2.16.840.1.113883.3.3719']", 
+            #'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:id[@root='2.16.840.1.113883.3.3719']", 
+            'element': "../hl7:id[@root='2.16.840.1.113883.3.3719']", 
             'attribute': "extension",
             'order': 9
         },
