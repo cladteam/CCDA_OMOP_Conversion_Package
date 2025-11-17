@@ -19,13 +19,11 @@ metadata = {
 
         'device_exposure_id_root': {
             'config_type': 'FIELD',
-            #'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'root'
     	},
     	'device_exposure_id_extension': {
             'config_type': 'FIELD',
-            #'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension'
     	},
@@ -49,13 +47,11 @@ metadata = {
         # participant[@typeCode='DEV']/participantRole/playingDevice/..
     	'device_concept_id_code': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice/hl7:code" ,
     	    'element': "hl7:code" ,
     	    'attribute': "code"
     	},
     	'device_concept_id_codeSystem': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:playingDevice/hl7:code",
     	    'element': "hl7:code",
     	    'attribute': "codeSystem"
     	},
@@ -87,7 +83,6 @@ metadata = {
         'device_exposure_start_date_procedure_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-    	    #'element': "hl7:effectiveTime/hl7:low",
     	    'element': "../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_date', 1)
@@ -95,7 +90,6 @@ metadata = {
         'device_exposure_start_date_procedure_value': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-    	    #'element': "hl7:effectiveTime",
     	    'element': "../../../hl7:effectiveTime",
     	    'attribute': "value",
             'priority': ('device_exposure_start_date', 2)
@@ -103,7 +97,6 @@ metadata = {
         'device_exposure_start_date_organizer_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-    	    #'element': "../../hl7:effectiveTime/hl7:low",
     	    'element': "../../../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_date', 3)
@@ -116,7 +109,6 @@ metadata = {
         'device_exposure_start_datetime_procedure_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATETIME',
-    	    #'element': "hl7:effectiveTime/hl7:low",
     	    'element': "../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_datetime', 1)
@@ -124,7 +116,6 @@ metadata = {
         'device_exposure_start_datetime_procedure_value': {
     	    'config_type': 'FIELD',
             'data_type': 'DATETIME',
-    	    #'element': "hl7:effectiveTime",
     	    'element': "../../../hl7:effectiveTime",
     	    'attribute': "value",
             'priority': ('device_exposure_start_datetime', 2)
@@ -132,7 +123,6 @@ metadata = {
         'device_exposure_start_datetime_organizer_low': {
     	    'config_type': 'FIELD',
             'data_type': 'DATETIME',
-    	    #'element': "../../hl7:effectiveTime/hl7:low",
     	    'element': "../../../../../hl7:effectiveTime/hl7:low",
     	    'attribute': "value",
             'priority': ('device_exposure_start_datetime', 3)
@@ -140,7 +130,6 @@ metadata = {
         
         'device_exposure_end_date': {
             'config_type': 'FIELD',
-            #'element': "../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
             'element': "../../../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
             'attribute': "value",
             'data_type': 'DATE',
@@ -149,7 +138,6 @@ metadata = {
 
         'device_exposure_end_datetime': {
             'config_type': 'FIELD',
-            #'element': "../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
             'element': "../../../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
             'attribute': "value",
             'data_type': 'DATETIME',
@@ -165,7 +153,6 @@ metadata = {
         # participant[@typeCode='DEV']/participantRole/..
         'unique_device_id':{
             'config_type': 'FIELD',
-            #'element': "hl7:participant[@typeCode='DEV']/hl7:participantRole/hl7:id[@root='2.16.840.1.113883.3.3719']", 
             'element': "../hl7:id[@root='2.16.840.1.113883.3.3719']", 
             'attribute': "extension",
             'order': 9

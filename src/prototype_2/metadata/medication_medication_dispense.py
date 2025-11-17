@@ -15,7 +15,6 @@ metadata = {
      		  ('./hl7:component/hl7:structuredBody/hl7:component/hl7:section'
     		   '/hl7:templateId[@root="2.16.840.1.113883.10.20.22.2.1" or @root="2.16.840.1.113883.10.20.22.2.1.1"]/..'
                    '/hl7:entry/hl7:substanceAdministration[@moodCode="INT" or @moodCode="EVN"]' 
-                    #  'hl7:entryRelationship/hl7:supply[@moodCode="EVN"]/'   # THANAPHOP
                    '/hl7:entryRelationship/hl7:supply/hl7:statusCode[@code="active" or @code="completed"]' 
                    '/hl7:statusCode[@code="active" or @code="completed"]/..'
                    '/hl7:templateId[@root="2.16.840.1.113883.10.20.22.4.18"]/..'
@@ -56,13 +55,11 @@ metadata = {
         # consumable/manufacturedProduct/manufacturedMaterial/...
     	'drug_concept_code': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:product/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:code" ,
     	    'element': "hl7:code" ,
     	    'attribute': "code"
     	},
     	'drug_concept_codeSystem': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:product/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:code",
     	    'element': "hl7:code",
     	    'attribute': "codeSystem"
     	},
@@ -89,7 +86,6 @@ metadata = {
         
         'drug_exposure_start_date_value': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime", 
             'element': "../../../hl7:effectiveTime", 
             'attribute': "value",
             'data_type': 'DATE',
@@ -97,7 +93,6 @@ metadata = {
         },        
         'drug_exposure_start_date_low': {
             'config_type': 'FIELD',
-            #'element': 'hl7:effectiveTime/hl7:low[not(@nullFlavor="UNK")]', 
             'element': '../../../hl7:effectiveTime/hl7:low[not(@nullFlavor="UNK")]', 
             'attribute': "value",
             'data_type': 'DATE',
@@ -109,7 +104,6 @@ metadata = {
         },
         'drug_exposure_start_datetime_value': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime", 
             'element': "../../../hl7:effectiveTime", 
             'attribute': "value",
             'data_type': 'DATETIME',
@@ -117,7 +111,6 @@ metadata = {
         },        
         'drug_exposure_start_datetime_low': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime/hl7:low[not(@nullFlavor='UNK')]", 
             'element': "../../../hl7:effectiveTime/hl7:low[not(@nullFlavor='UNK')]", 
             'attribute': "value",
             'data_type': 'DATETIME',
@@ -130,7 +123,6 @@ metadata = {
         'drug_exposure_end_date': {
     	    'config_type': 'FIELD',
             'data_type':'DATE',
-    	    #'element': "hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]",
     	    'element': "../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]",
     	    'attribute': "value",
             'order': 6
@@ -138,7 +130,6 @@ metadata = {
         'drug_exposure_end_datetime': {
     	    'config_type': 'FIELD',
             'data_type':'DATETIME',
-    	    #'element': "hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]",
     	    'element': "../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]",
     	    'attribute': "value",
             'order': 7
@@ -146,7 +137,6 @@ metadata = {
         'verbatim_end_date': {
     	    'config_type': 'FIELD',
             'data_type': 'DATE',
-            #'element': "hl7:effectiveTime/hl7:high[not(@nullFlavor=\"UNK\")]",
             'element': "../../../hl7:effectiveTime/hl7:high[not(@nullFlavor=\"UNK\")]",
     	    'attribute': "value",
             'order': 8
@@ -173,7 +163,6 @@ metadata = {
         # clinical drugs
         'quantity': {
             'config_type': 'FIELD',
-            #'element': "hl7:quantity",
             'element': "../../../hl7:quantity",
             'attribute': "value",
             'data_type': 'FLOAT',

@@ -22,13 +22,11 @@ metadata = {
     	
         'drug_exposure_id_root': {
             'config_type': 'FIELD',
-            #'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'root'
     	},
     	'drug_exposure_id_extension': {
             'config_type': 'FIELD',
-            #'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
             'attribute': 'extension'
     	},
@@ -54,13 +52,11 @@ metadata = {
         # consumable/manufacturedProduct/manufacturedMaterial/...
     	'drug_concept_code_code': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:consumable/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:code" ,
     	    'element': "hl7:code" ,
     	    'attribute': "code"
     	},
     	'drug_concept_codeSystem_code': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:consumable/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:code",
     	    'element': "hl7:code",
     	    'attribute': "codeSystem"
     	},
@@ -88,13 +84,11 @@ metadata = {
 
     	'drug_concept_code_translation': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:consumable/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:code/hl7:translation" ,
     	    'element': "hl7:code/hl7:translation" ,
     	    'attribute': "code"
     	},
     	'drug_concept_codeSystem_translation': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:consumable/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:code/hl7:translation",
     	    'element': "hl7:code/hl7:translation",
     	    'attribute': "codeSystem"
     	},
@@ -131,7 +125,6 @@ metadata = {
         
         'drug_exposure_start_date': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime", 
             'element': "../../../hl7:effectiveTime", 
             'attribute': "value",
             'data_type': 'DATE',
@@ -140,7 +133,6 @@ metadata = {
 
         'drug_exposure_start_datetime': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime", 
             'element': "../../../hl7:effectiveTime", 
             'attribute': "value",
             'data_type': 'DATETIME',
@@ -149,7 +141,6 @@ metadata = {
 
         'drug_exposure_end_date': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime", 
             'element': "../../../hl7:effectiveTime", 
             'attribute': "value",
             'data_type': 'DATE',
@@ -158,7 +149,6 @@ metadata = {
 
         'drug_exposure_end_datetime': {
             'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime", 
             'element': "../../../hl7:effectiveTime", 
             'attribute': "value",
             'data_type': 'DATETIME',
@@ -167,7 +157,6 @@ metadata = {
        
         'verbatim_end_date': {
     	    'config_type': 'FIELD',
-            #'element': "hl7:effectiveTime",
             'element': "../../../hl7:effectiveTime",
     	    'attribute': "value",
             'data_type':'DATE',
@@ -189,7 +178,6 @@ metadata = {
        
         'quantity': {
             'config_type': 'FIELD',
-            #'element': "hl7:doseQuantity",
             'element': "../../../hl7:doseQuantity",
             'attribute': "value",
             'data_type': 'FLOAT',
@@ -201,13 +189,11 @@ metadata = {
 
         'route_concept_code': {
             'config_type': 'FIELD',
-            #'element': "hl7:routeCode",
             'element': "../../../hl7:routeCode",
             'attribute': "code"
         },
         'route_concept_codeSystem': {
             'config_type': 'FIELD',
-            #'element': "hl7:routeCode",
             'element': "../../../hl7:routeCode",
             'attribute': "codeSystem"
         },
@@ -225,7 +211,6 @@ metadata = {
         # consumable/manufacturedProduct/manufacturedMaterial/lotNumberText
         'lot_number': {
     	    'config_type': 'FIELD',
-    	    #'element': "hl7:consumable/hl7:manufacturedProduct/hl7:manufacturedMaterial/hl7:lotNumberText",
     	    'element':  "hl7:lotNumberText",
             'data_type': 'TEXT',
             'attribute': '#text',
@@ -309,7 +294,6 @@ metadata = {
                
         'dose_unit_source_value': { 
        	    'config_type': 'FIELD',
-            #'element': "hl7:doseQuantity",
             'element': "../../../hl7:doseQuantity",
             'attribute': "unit",
             'order': 23
