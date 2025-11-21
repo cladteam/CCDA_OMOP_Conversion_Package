@@ -831,16 +831,390 @@ def parse_config_from_xml_file(tree, config_name,
 
     return output_list
 
-                          
-                          
-#                          
+
+
+#
 ##################################################
 #
-           
-                          
+
+
+"""
+
+    The following part processes visit data to create a hierarchical structure
+    where inpatient parent visits (<= 1 year duration) are kept in visit_occurrence
+    and their nested child visits are moved to visit_detail.
+
+    Process:
+    1. Identify inpatient parent visits with duration <= 1 year
+    2. Find visits temporally nested within each parent
+    3. Create visit_detail records for nested children
+    4. Return updated visit_occurrence (parents + standalone) and new visit_detail list
+
+"""
+
+# Type alias for OMOP record dictionaries
+OMOPRecord = dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date]
+
+# OMOP standard concept IDs for inpatient visits
+INPATIENT_CONCEPT_IDS = {
+    9201   # Inpatient Visit
+}
+
+# Maximum duration for a valid inpatient parent (in days)
+MAX_PARENT_DURATION_DAYS = 367
+
+
+def get_visit_duration_days(visit_dict: OMOPRecord) -> float | None:
+    """
+    Calculate visit duration in days.
+
+    Args:
+        visit_dict: Dictionary containing visit record
+
+    Returns:
+        Duration in days, or None if dates are missing
+    """
+    # Try datetime columns first, fall back to date columns
+    if 'visit_start_datetime' in visit_dict and 'visit_end_datetime' in visit_dict:
+        start_key = 'visit_start_datetime'
+        end_key = 'visit_end_datetime'
+    else:
+        start_key = 'visit_start_date'
+        end_key = 'visit_end_date'
+
+    start = visit_dict.get(start_key)
+    end = visit_dict.get(end_key)
+
+    if start is None or end is None:
+        return None
+
+    # Handle both datetime and date objects
+    if isinstance(start, datetime.datetime) and isinstance(end, datetime.datetime):
+        return (end - start).total_seconds() / 86400
+    elif isinstance(start, datetime.date) and isinstance(end, datetime.date):
+        return float((end - start).days)
+    else:
+        return None
+
+
+def identify_inpatient_parents(visit_list: list[OMOPRecord]) -> list[OMOPRecord]:
+    """
+    Identify inpatient parent visits that are meaningful and time-bounded.
+
+    Criteria:
+    - visit_concept_id is in INPATIENT_CONCEPT_IDS
+    - Duration between start and end is <= 1 year
+    - Has valid start and end datetimes
+
+    Args:
+        visit_list: List of visit record dictionaries
+
+    Returns:
+        List containing only eligible inpatient parent visits
+    """
+    if not visit_list:
+        logger.info("No visits to process for parent identification")
+        return []
+
+    eligible_parents = []
+
+    for visit in visit_list:
+        # Check if inpatient concept
+        concept_id = visit.get('visit_concept_id')
+        if concept_id in INPATIENT_CONCEPT_IDS:
+            # Calculate duration
+            duration_days = get_visit_duration_days(visit)
+            if duration_days is not None:
+                # Check duration threshold
+                if duration_days < MAX_PARENT_DURATION_DAYS:
+                    eligible_parents.append(visit)
+
+    logger.info(f"Identified {len(eligible_parents)} inpatient parent visits from {len(visit_list)} total visits")
+
+    return eligible_parents
+
+
+def is_temporally_contained(child_dict: OMOPRecord, parent_dict: OMOPRecord) -> bool:
+    """
+    Check if child visit is temporally contained within parent visit.
+
+    Args:
+        child_dict: Child visit record
+        parent_dict: Parent visit record
+
+    Returns:
+        True if child is fully contained within parent timeframe
+    """
+    # Determine which date columns to use
+    if 'visit_start_datetime' in child_dict and 'visit_end_datetime' in child_dict:
+        start_key = 'visit_start_datetime'
+        end_key = 'visit_end_datetime'
+    else:
+        start_key = 'visit_start_date'
+        end_key = 'visit_end_date'
+
+    child_start = child_dict.get(start_key)
+    child_end = child_dict.get(end_key)
+    parent_start = parent_dict.get(start_key)
+    parent_end = parent_dict.get(end_key)
+
+    if any(x is None for x in [child_start, child_end, parent_start, parent_end]):
+        return False
+
+    # Check temporal containment
+    return parent_start <= child_start and parent_end >= child_end
+
+
+def find_most_specific_parent(child_dict: OMOPRecord,
+                              potential_parents: list[OMOPRecord]) -> int64 | None:
+    """
+    Find the most specific (shortest duration, most immediate) parent for a child visit.
+
+    When multiple parents overlap and contain a child, choose the parent with the
+    shortest duration as it represents the most specific/immediate context.
+
+    However, if the child has multiple containing parents that are at the same
+    hierarchy level (i.e., the parents don't contain each other), returns None
+    to avoid ambiguity. The child visit will remain at its current level.
+
+    Args:
+        child_dict: Child visit record
+        potential_parents: List of potential parent visit records
+
+    Returns:
+        visit_occurrence_id of the most specific parent, or None if:
+        - No parent found
+        - Multiple parents at the same hierarchy level exist (ambiguous)
+    """
+    if not potential_parents:
+        return None
+
+    child_person_id = child_dict.get('person_id')
+    child_visit_id = child_dict.get('visit_occurrence_id')
+
+    # Filter to parents that contain this child
+    containing_parents = []
+    for parent in potential_parents:
+        # Same person
+        if parent.get('person_id') == child_person_id:
+            # Not self
+            if parent.get('visit_occurrence_id') != child_visit_id:
+                # Temporally contains child
+                if is_temporally_contained(child_dict, parent):
+                    containing_parents.append(parent)
+
+    if not containing_parents:
+        return None
+
+    # Check if any of the containing parents are at the same hierarchy level
+    # (i.e., they don't contain each other)
+    if len(containing_parents) > 1:
+        for i in range(len(containing_parents)):
+            for j in range(i + 1, len(containing_parents)):
+                parent_i = containing_parents[i]
+                parent_j = containing_parents[j]
+
+                # Check if parent_i contains parent_j
+                i_contains_j = is_temporally_contained(parent_j, parent_i)
+
+                # Check if parent_j contains parent_i
+                j_contains_i = is_temporally_contained(parent_i, parent_j)
+
+                # If neither contains the other, they're at the same level (siblings)
+                if not i_contains_j and not j_contains_i:
+                    parent_i_id = parent_i.get('visit_occurrence_id')
+                    parent_j_id = parent_j.get('visit_occurrence_id')
+                    logger.warning(
+                        f"Visit {child_visit_id} has multiple parents at the same hierarchy level "
+                        f"(parents {parent_i_id} and {parent_j_id} don't contain each other). "
+                        f"Keeping in current level to avoid ambiguity."
+                    )
+                    return None
+
+    # All parents are in a hierarchical chain - find the most specific (shortest duration)
+    min_duration = None
+    most_specific_parent = None
+
+    for parent in containing_parents:
+        duration = get_visit_duration_days(parent)
+        if duration is not None:
+            if min_duration is None or duration < min_duration:
+                min_duration = duration
+                most_specific_parent = parent
+
+    if most_specific_parent:
+        parent_id = most_specific_parent.get('visit_occurrence_id')
+        return parent_id
+
+    return None
+
+
+def create_visit_detail_record(visit_dict: OMOPRecord,
+                               top_level_parent_id: int64,
+                               immediate_parent_id: int64 | None = None) -> OMOPRecord:
+    """
+    Convert a visit (visit_occurrence) record into visit_detail format.
+
+    Args:
+        visit_dict: Visit record to convert
+        top_level_parent_id: The top-level visit_occurrence_id
+        immediate_parent_id: The immediate parent's visit_detail_id (or None for Layer 2)
+
+    Returns:
+        Dictionary in visit_detail format
+    """
+    detail_record = {}
+
+    # Map visit_occurrence fields to visit_detail fields
+    field_mapping = {
+        'visit_occurrence_id': 'visit_detail_id',
+        'person_id': 'person_id',
+        'visit_concept_id': 'visit_detail_concept_id',
+        'visit_start_date': 'visit_detail_start_date',
+        'visit_start_datetime': 'visit_detail_start_datetime',
+        'visit_end_date': 'visit_detail_end_date',
+        'visit_end_datetime': 'visit_detail_end_datetime',
+        'visit_type_concept_id': 'visit_detail_type_concept_id',
+        'provider_id': 'provider_id',
+        'care_site_id': 'care_site_id',
+        'visit_source_value': 'visit_detail_source_value',
+        'visit_source_concept_id': 'visit_detail_source_concept_id',
+        'admitting_source_value': 'admitting_source_value',
+        'admitting_source_concept_id': 'admitting_source_concept_id',
+        'discharge_to_source_value': 'discharge_to_source_value',
+        'discharge_to_concept_id': 'discharge_to_concept_id',
+        'filename': 'filename',
+        'cfg_name': 'cfg_name',
+    }
+
+    # Copy mapped fields
+    for src_field, dest_field in field_mapping.items():
+        if src_field in visit_dict:
+            detail_record[dest_field] = visit_dict[src_field]
+
+    # Set parent references
+    detail_record['visit_occurrence_id'] = top_level_parent_id
+    detail_record['visit_detail_parent_id'] = immediate_parent_id
+    detail_record['preceding_visit_detail_id'] = None
+
+    return detail_record
+
+
+def reclassify_nested_visit_occurrences_as_detail(omop_dict: dict[str, list[OMOPRecord]]) -> dict[str, list[OMOPRecord]]:
+    """
+    Reclassify nested visit_occurrence records as visit_detail records.
+    This function is called after all parsing is complete.
+
+    Process:
+    1. Identify inpatient parent visits (<= 1 year duration)
+    2. For each visit, find its most specific parent
+    3. Only top-level parents (no parent themselves) stay in visit_occurrence
+    4. All nested visits go to visit_detail with visit_detail_parent_id for multi-level nesting
+
+    Args:
+        omop_dict: Dictionary of domain → list of records (from parse_doc)
+
+    Returns:
+        Updated omop_dict with:
+        - Modified visit (visit_occurrence) list (parents + standalone)
+        - New visit_detail list (nested children)
+    """
+    # Find Visit in omop_dict
+    visit_key = None
+    if 'Visit' in omop_dict and omop_dict['Visit']:
+        visit_key = 'Visit'
+
+    if not visit_key:
+        logger.info("No visit_occurrence data found for hierarchy processing")
+        return omop_dict
+
+    visit_list = omop_dict[visit_key]
+    if not visit_list:
+        logger.info("Empty visit_occurrence list")
+        return omop_dict
+
+    logger.info(f"Processing visit hierarchy for {len(visit_list)} visits")
+
+    # Step 1: Identify inpatient parents
+    parent_visits = identify_inpatient_parents(visit_list)
+
+    if not parent_visits:
+        logger.info("No inpatient parent visits found - returning original visit_occurrence")
+        return omop_dict
+
+    logger.info(f"Identified {len(parent_visits)} potential parent visits")
+
+    # Step 2: For each visit, determine if it should be nested and find its most specific parent
+    visit_to_parent_map = {}
+    nested_visit_ids = set()
+
+    # Create lookup dict for faster access
+    visit_lookup = {v.get('visit_occurrence_id'): v for v in visit_list}
+
+    for visit in visit_list:
+        visit_id = visit.get('visit_occurrence_id')
+
+        # Find the most specific parent for this visit
+        most_specific_parent_id = find_most_specific_parent(visit, parent_visits)
+
+        if most_specific_parent_id is not None:
+            # This visit has a parent, so it should be nested
+            visit_to_parent_map[visit_id] = most_specific_parent_id
+            nested_visit_ids.add(visit_id)
+            logger.debug(f"Visit {visit_id} will be nested under parent {most_specific_parent_id}")
+
+    logger.info(f"Found {len(nested_visit_ids)} visits to be nested")
+
+    # Step 3: Identify which parent visits are themselves nested (multi-level scenario)
+    parent_ids = {p.get('visit_occurrence_id') for p in parent_visits}
+    nested_parent_ids = parent_ids & nested_visit_ids
+
+    logger.info(f"Found {len(parent_ids - nested_parent_ids)} top-level parents and {len(nested_parent_ids)} nested parents")
+
+    # Step 4: Create visit_detail records for all nested visits
+    visit_detail_list = []
+
+    for visit_id in nested_visit_ids:
+        visit = visit_lookup.get(visit_id)
+        if visit:
+            immediate_parent_id = visit_to_parent_map[visit_id]
+
+            # Find the top-level visit_occurrence_id by traversing up the hierarchy
+            top_level_parent_id = immediate_parent_id
+            while top_level_parent_id in visit_to_parent_map:
+                top_level_parent_id = visit_to_parent_map[top_level_parent_id]
+
+            # Determine visit_detail_parent_id
+            if immediate_parent_id in nested_parent_ids:
+                # Immediate parent is in visit_detail
+                visit_detail_parent_id = immediate_parent_id
+            else:
+                # Immediate parent is in visit_occurrence (top-level)
+                visit_detail_parent_id = None
+
+            # Create visit_detail record
+            detail_record = create_visit_detail_record(visit, top_level_parent_id, visit_detail_parent_id)
+            visit_detail_list.append(detail_record)
+
+    logger.info(f"Created {len(visit_detail_list)} visit_detail records")
+
+    # Step 5: Create final visit_occurrence (remove ALL nested children, keep only top-level)
+    final_visit_occurrence = [v for v in visit_list if v.get('visit_occurrence_id') not in nested_visit_ids]
+
+    logger.info(f"Removed {len(nested_visit_ids)} nested visits from visit_occurrence")
+    logger.info(f"Final visit_occurrence contains {len(final_visit_occurrence)} records")
+
+    # Update omop_dict
+    omop_dict[visit_key] = final_visit_occurrence
+    if visit_detail_list:
+        omop_dict['Visit_detail'] = visit_detail_list
+
+    return omop_dict
+
+
 """ domain_dates tell the FK functionality in do_foreign_keys() how to 
     choose visits for domain_rows.It is one of the most encumbered parts of the code.
-    
+
     Rules:
     - Encounters must be populated before domains. This is controlled by the
       order of the metadata files in the metadata/__init__.py file.
@@ -851,14 +1225,14 @@ def parse_config_from_xml_file(tree, config_name,
       Measurement_results. They are the keys into the output dict where the
       visit candidates will be found.
     + This all happens in the do_basic_keys 
-    
+
     Background: An xml file is processed in phases, one for each configuration file in 
     the metadata directory. Since the configuration files are organized by omop table,
     it's helpful to think of the phases being the OMOP tables too.  Within each config 
     phase, there is another level of phases: the types of the fields: none, constant, 
     basic, derived, domain, hash, and foreign key. This means any fields in the current 
     config phase are available for looking up the value of a foreign key.
-    
+
 """
 domain_dates = {
     'Measurement': {'date': ['measurement_date', 'measurement_datetime'],
@@ -1047,10 +1421,10 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
 
     else:
         logger.error("??? bust in domain_dates for reconcilliation")
-    
-    
+
+
 @typechecked
-def reconcile_visit_foreign_keys(data_dict :dict[str, 
+def assign_visit_occurrence_ids_to_events(data_dict :dict[str, 
                                                  list[ dict[str,  None | str | float | int |int64 | datetime.datetime | datetime.date] | None  ] | None]) :
     # data_dict is a dictionary of config_names to a list of record-dicts
     # Only Measurement, Observation, Condition, Procedure, Drug, and Device participate in Visit FK reconciliation
@@ -1073,7 +1447,248 @@ def reconcile_visit_foreign_keys(data_dict :dict[str,
 
     for meta_tuple in metadata:
         reconcile_visit_FK_with_specific_domain(meta_tuple[0], data_dict[meta_tuple[1]], data_dict['Visit'])
-                          
+
+
+@typechecked
+def assign_visit_detail_ids_to_events(data_dict: dict[str,
+                                                         list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] | None] | None]):
+    """
+    visit_detail FK reconciliation: Match clinical domain events to visit_detail records.
+
+    This assigns visit_detail_id to events that occur during nested visits.
+    Events must already have visit_occurrence_id set (from assign_visit_occurrence_ids_to_events).
+
+    For events that fall within multiple nested visits, chooses the most specific
+    (smallest duration) visit_detail.
+
+    Args:
+        data_dict: Dictionary with domain data and visit_detail table
+    """
+    if 'Visit_detail' not in data_dict or not data_dict['Visit_detail']:
+        logger.info("No visit_detail records found - skipping visit_detail FK reconciliation")
+        return
+
+    visit_detail_list = data_dict['Visit_detail']
+
+    # Metadata for domains that need visit_detail reconciliation
+    metadata = [
+        ('Measurement', 'Measurement_results'),
+        ('Measurement', 'Measurement_vital_signs'),
+        ('Observation', 'Observation'),
+        ('Condition', 'Condition'),
+        ('Procedure', 'Procedure_activity_procedure'),
+        ('Procedure', 'Procedure_activity_observation'),
+        ('Procedure', 'Procedure_activity_act'),
+        ('Drug', 'Medication_medication_activity'),
+        ('Drug', 'Medication_medication_dispense'),
+        ('Drug', 'Immunization_immunization_activity'),
+        ('Device', 'Device_organizer_supply'),
+        ('Device', 'Device_supply'),
+        ('Device', 'Device_organizer_procedure'),
+        ('Device', 'Device_procedure'),
+    ]
+
+    for meta_tuple in metadata:
+        domain = meta_tuple[0]
+        config_name = meta_tuple[1]
+
+        if config_name in data_dict and data_dict[config_name]:
+            reconcile_visit_detail_FK_with_specific_domain(domain, data_dict[config_name], visit_detail_list)
+
+
+@typechecked
+def reconcile_visit_detail_FK_with_specific_domain(domain: str,
+                                                    domain_dict: list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date]] | None,
+                                                    visit_detail_dict: list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date]] | None):
+    """
+    Match events to visit_detail records by temporal containment.
+    Choose the most specific (smallest duration) matching visit_detail.
+
+    Args:
+        domain: Domain name (e.g., 'Measurement', 'Condition')
+        domain_dict: List of event records to reconcile
+        visit_detail_dict: List of visit_detail records
+    """
+    if not visit_detail_dict or not domain_dict:
+        return
+
+    if domain not in domain_dates:
+        logger.debug(f"No date metadata for domain {domain} in visit_detail reconciliation")
+        return
+
+    logger.info(f"Reconciling visit_detail FKs for {domain} ({len(domain_dict)} events, {len(visit_detail_dict)} visit_details)")
+
+    # Visit_detail date field mapping
+    visit_detail_date_fields = {
+        'start_date': 'visit_detail_start_date',
+        'start_datetime': 'visit_detail_start_datetime',
+        'end_date': 'visit_detail_end_date',
+        'end_datetime': 'visit_detail_end_datetime',
+    }
+
+    matched_count = 0
+    no_match_count = 0
+
+    # Process events with a single date field
+    if 'date' in domain_dates[domain].keys():
+        for thing in domain_dict:
+            # Skip if no visit_occurrence_id
+            if 'visit_occurrence_id' not in thing or thing['visit_occurrence_id'] is None:
+                continue
+
+            date_field_name = domain_dates[domain]['date'][0]
+            datetime_field_name = domain_dates[domain]['date'][1]
+
+            # Get event date (prefer datetime over date)
+            event_date = None
+            if thing[datetime_field_name] is not None and isinstance(thing[datetime_field_name], datetime.datetime):
+                event_date = strip_tz(thing[datetime_field_name])
+            else:
+                event_date = thing[date_field_name]
+
+            if event_date is None:
+                continue
+
+            # Find matching visit_details
+            matches = []
+            for vd in visit_detail_dict:
+                # Must be in the same visit_occurrence
+                if vd.get('visit_occurrence_id') != thing.get('visit_occurrence_id'):
+                    continue
+
+                # Get visit_detail dates
+                vd_start_datetime = strip_tz(vd.get(visit_detail_date_fields['start_datetime']))
+                vd_start_date = vd.get(visit_detail_date_fields['start_date'])
+                vd_end_datetime = strip_tz(vd.get(visit_detail_date_fields['end_datetime']))
+                vd_end_date = vd.get(visit_detail_date_fields['end_date'])
+
+                # Check containment
+                in_window = False
+                if isinstance(event_date, datetime.datetime):
+                    if vd_start_datetime and vd_end_datetime:
+                        in_window = vd_start_datetime <= event_date <= vd_end_datetime
+                elif isinstance(event_date, datetime.date):
+                    if vd_start_date and vd_end_date:
+                        in_window = vd_start_date <= event_date <= vd_end_date
+
+                if in_window:
+                    matches.append(vd)
+
+            # Set visit_detail_id based on matches
+            if len(matches) == 1:
+                thing['visit_detail_id'] = matches[0]['visit_detail_id']
+                matched_count += 1
+            elif len(matches) > 1:
+                # Multiple matches - choose most specific (smallest duration)
+                most_specific = min(matches, key=lambda vd: get_visit_detail_duration(vd))
+                thing['visit_detail_id'] = most_specific['visit_detail_id']
+                matched_count += 1
+                logger.debug(f"{domain} event matched {len(matches)} visit_details, chose most specific (id={most_specific['visit_detail_id']})")
+            else:
+                # No match - leave visit_detail_id as None
+                no_match_count += 1
+
+    # Process events with start and end dates
+    elif 'start' in domain_dates[domain].keys() and 'end' in domain_dates[domain].keys():
+        for thing in domain_dict:
+            # Skip if no visit_occurrence_id
+            if 'visit_occurrence_id' not in thing or thing['visit_occurrence_id'] is None:
+                continue
+
+            start_date_field = domain_dates[domain]['start'][0]
+            start_datetime_field = domain_dates[domain]['start'][1]
+            end_date_field = domain_dates[domain]['end'][0]
+            end_datetime_field = domain_dates[domain]['end'][1]
+
+            # Get event dates
+            start_date_value = None
+            end_date_value = None
+
+            if thing[start_datetime_field] is not None and isinstance(thing[start_datetime_field], datetime.datetime):
+                start_date_value = strip_tz(thing[start_datetime_field])
+            else:
+                start_date_value = thing[start_date_field]
+
+            if thing[end_datetime_field] is not None and isinstance(thing[end_datetime_field], datetime.datetime):
+                end_date_value = strip_tz(thing[end_datetime_field])
+            elif thing[end_date_field] is not None:
+                end_date_value = thing[end_date_field]
+            else:
+                end_date_value = start_date_value
+
+            if start_date_value is None or end_date_value is None:
+                continue
+
+            # Find matching visit_details
+            matches = []
+            for vd in visit_detail_dict:
+                # Must be in the same visit_occurrence
+                if vd.get('visit_occurrence_id') != thing.get('visit_occurrence_id'):
+                    continue
+
+                # Get visit_detail dates
+                vd_start_datetime = strip_tz(vd.get(visit_detail_date_fields['start_datetime']))
+                vd_start_date = vd.get(visit_detail_date_fields['start_date'])
+                vd_end_datetime = strip_tz(vd.get(visit_detail_date_fields['end_datetime']))
+                vd_end_date = vd.get(visit_detail_date_fields['end_date'])
+
+                # Check containment (both start and end must be within visit_detail window)
+                in_window = False
+                if isinstance(start_date_value, datetime.datetime) and isinstance(end_date_value, datetime.datetime):
+                    if vd_start_datetime and vd_end_datetime:
+                        in_window = (vd_start_datetime <= start_date_value <= vd_end_datetime and
+                                    vd_start_datetime <= end_date_value <= vd_end_datetime)
+                elif isinstance(start_date_value, datetime.date) and isinstance(end_date_value, datetime.date):
+                    if vd_start_date and vd_end_date:
+                        in_window = (vd_start_date <= start_date_value <= vd_end_date and
+                                   vd_start_date <= end_date_value <= vd_end_date)
+
+                if in_window:
+                    matches.append(vd)
+
+            # Set visit_detail_id based on matches
+            if len(matches) == 1:
+                thing['visit_detail_id'] = matches[0]['visit_detail_id']
+                matched_count += 1
+            elif len(matches) > 1:
+                # Multiple matches - choose most specific (smallest duration)
+                most_specific = min(matches, key=lambda vd: get_visit_detail_duration(vd))
+                thing['visit_detail_id'] = most_specific['visit_detail_id']
+                matched_count += 1
+                logger.debug(f"{domain} event matched {len(matches)} visit_details, chose most specific (id={most_specific['visit_detail_id']})")
+            else:
+                # No match - leave visit_detail_id as None
+                no_match_count += 1
+
+    logger.info(f"{domain}: {matched_count} events matched to visit_detail, {no_match_count} without visit_detail match")
+
+
+@typechecked
+def get_visit_detail_duration(visit_detail_dict: dict) -> float:
+    """
+    Calculate duration of a visit_detail in days.
+
+    Args:
+        visit_detail_dict: Visit_detail record
+
+    Returns:
+        Duration in days (float)
+    """
+    start_datetime = visit_detail_dict.get('visit_detail_start_datetime')
+    end_datetime = visit_detail_dict.get('visit_detail_end_datetime')
+    start_date = visit_detail_dict.get('visit_detail_start_date')
+    end_date = visit_detail_dict.get('visit_detail_end_date')
+
+    # Prefer datetime for precision
+    if start_datetime and end_datetime:
+        delta = end_datetime - start_datetime
+        return delta.total_seconds() / 86400  # Convert to days
+    elif start_date and end_date:
+        delta = end_date - start_date
+        return float(delta.days)
+
+    return 0.0
+
 
 @typechecked
 def parse_string(ccda_string, file_path,
@@ -1082,7 +1697,7 @@ def parse_string(ccda_string, file_path,
     """ 
         Parses many meta configs from a string instead of a single file, 
         collects them in omop_dict.
-        
+
         Returns omop_dict, a  dict keyed by configuration names, 
         each a list of record/row dictionaries.
     """
@@ -1096,17 +1711,26 @@ def parse_string(ccda_string, file_path,
             logger.info(f"DDP.py {config_name} {len(data_dict_list)}")
         else:
             logger.info(f"DDP.py {config_name} has None data_dict_list")
-        if config_name in omop_dict: 
+        if config_name in omop_dict:
             omop_dict[config_name] = omop_dict[config_name].extend(data_dict_list)
         else:
             omop_dict[config_name] = data_dict_list
-        
+
     for config_name, config_dict in omop_dict.items():
         if config_dict is not None:
             logger.info(f"DDP.py resulting omop_dict {config_name} {len(config_dict)}")
         else:
             logger.info(f"DDP.py resulting omop_dict {config_name} empty")
-                
+
+    # Post-process: Create visit_detail from visit hierarchy
+    try:
+        omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
+
+    except Exception as e:
+        logger.error(f"Error processing visit hierarchy: {e}")
+        logger.error(traceback.format_exc())
+        # Continue with original data if hierarchy processing fails
+
     return omop_dict
 
 
@@ -1134,6 +1758,16 @@ def parse_doc(file_path,
         #    print(f"...PARSED, got {len(data_dict_list)}")
         #else:
         #    print(f"...PARSED, got **NOTHING** {data_dict_list} ")
+
+    # Post-process: Create visit_detail from visit hierarchy
+    try:
+        omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
+
+    except Exception as e:
+        logger.error(f"Error processing visit hierarchy: {e}")
+        logger.error(traceback.format_exc())
+        # Continue with original data if hierarchy processing fails
+
     return omop_dict
 
 
@@ -1191,7 +1825,8 @@ def process_file(filepath :str, print_output: bool):
     print(f"    {filepath} parse_doc() ")
     omop_data = parse_doc(filepath, metadata)
     print(f"    {filepath} reconcile_visit()() ")
-    reconcile_visit_foreign_keys(omop_data)
+    assign_visit_occurrence_ids_to_events(omop_data)
+    assign_visit_detail_ids_to_events(omop_data)
     if print_output and (omop_data is not None or len(omop_data) < 1):
         print_omop_structure(omop_data, metadata)
     else:

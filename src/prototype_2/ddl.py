@@ -93,7 +93,9 @@ domain_name_to_table_name = {
     'Procedure'  : 'procedure_occurrence',
     'Provider'   : 'provider',
     'Visit'      : 'visit_occurrence',
-    'Device'       : 'device_exposure',
+    'Device'     : 'device_exposure',
+    'Visit_detail': 'visit_detail',
+
 }
 
 sql_import_dict = {
@@ -314,6 +316,30 @@ sql_import_dict = {
                 FROM visit_occurrence
                 """
     },
+    'Visit_detail': {
+        'column_list': [
+                    'visit_detail_id', 
+                    'person_id', 
+                    'visit_detail_concept_id',
+                    'visit_detail_start_date', 'visit_detail_start_datetime', 
+                    'visit_detail_end_date', 'visit_detail_end_datetime', 
+                    'visit_detail_type_concept_id', 
+                    'provider_id', 'care_site_id', 
+                    'visit_detail_source_value', 'visit_detail_source_concept_id', 
+                    'admitting_source_concept_id', 'admitting_source_value', 
+                    'discharge_to_source_concept_id', 'discharge_to_source_value', 
+                    'preceding_visit_detail_id', 'visit_detail_parent_id',
+                    'visit_occurrence_id'
+                    ],
+        'sql': None,
+        'table_name': "visit_detail",
+        'pk_query': """
+                SELECT count(*) as row_ct, 
+                       count(visit_detail_id) as p_id, 
+                       count(distinct visit_detail_id) as d_p_id
+                FROM visit_detail
+                """
+    },
     'Measurement': {
         'column_list': [
                     'measurement_id', ' person_id', 'measurement_concept_id',
@@ -447,7 +473,7 @@ def main():
     _apply_ddl("OMOPCDM_duckdb_5.3_ddl_with_constraints_and_bigint_PK.sql")
 
     domain_list = ['Person', 'Visit', 'Provider', 'Care_Site', 'Location',
-               'Measurement', 'Drug', 'Procedure', 'Device', 'Observation'
+               'Measurement', 'Drug', 'Procedure', 'Device', 'Observation', 'Visit_detail'
     ]
 
     for domain in domain_list:

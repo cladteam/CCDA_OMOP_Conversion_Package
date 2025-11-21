@@ -85,7 +85,11 @@ def find_max_columns(config_name :str, domain_list: list[ dict[str, tuple[ None 
     """
     domain = None
     try:
-        domain = config_to_domain_name_dict[config_name]
+        # Special case: visit_detail is created directly as an OMOP table, not from a config
+        if config_name == 'Visit_detail':
+            domain = 'Visit_detail'
+        else:
+            domain = config_to_domain_name_dict[config_name]
     except Exception as e:
         logger.error(f"ERROR no domain for {config_name} in {config_to_domain_name_dict.keys()}"
                      "The config_to_domain_name_dict in ddl.py probably needs this to be added to it.")
@@ -177,8 +181,13 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
             try:
                 ##show_column_dict(config_name, column_dict)
                 domain_df = pd.DataFrame(column_dict)
-                domain_name = config_to_domain_name_dict[config_name]
-                table_name = domain_name_to_table_name[domain_name]
+                # Special case: visit_detail is created directly as an OMOP table
+                if config_name == 'Visit_detail':
+                    domain_name = 'Visit_detail'
+                    table_name = 'visit_detail'
+                else:
+                    domain_name = config_to_domain_name_dict[config_name]
+                    table_name = domain_name_to_table_name[domain_name]
                 if table_name in domain_dataframe_column_types.keys():
                     non_nullable_cols = NON_NULLABLE_COLUMNS.get(table_name, [])
                     for column_name, column_type in domain_dataframe_column_types[table_name].items():
@@ -188,8 +197,14 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                             try:
                                 # Only fill missing values for non-nullable columns
                                 if column_name not in non_nullable_cols:
-                                    # leave as None/NaN
-                                    domain_df[column_name] = domain_df[column_name]
+                                    # For nullable integer columns, use pandas nullable Int64 and Int32 type
+                                    if column_type == int64:
+                                        domain_df[column_name] = domain_df[column_name].astype('Int64')
+                                    elif column_type == int32:
+                                        domain_df[column_name] = domain_df[column_name].astype('Int32')
+                                    else:
+                                        # leave as None/NaN for other types
+                                        domain_df[column_name] = domain_df[column_name]
                                 else:
                                     domain_df[column_name] = domain_df[column_name].fillna(0).astype(column_type)  # generates downcasting wwarnings and doesn't throw, 
                                     # domain_df[column_name] = domain_df[column_name].fillna(cast(column_type, 0)).astype(column_type)  # throwss
@@ -240,12 +255,12 @@ def write_csvs_from_dataframe_dict(df_dict :dict[str, pd.DataFrame], file_name, 
 
 @typechecked
 def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
-    """ 
+    """
         * E X P E R I M E N T A L *
-    
+
         Processes a string creates dataset and writes csv
         returns dataset
-        
+
         (really calls into a lot of DDP detail and seems like it belongs there)
     """
     base_name = os.path.basename(filepath)
@@ -253,13 +268,22 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
     logger.info(f"parsing string from {filepath}")
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
     logger.info(f"--parsing string from file:{filepath} keys:{omop_data.keys()} p:{len(omop_data['Person'])} m:{len(omop_data['Measurement'])} ")
-    DDP.reconcile_visit_foreign_keys(omop_data)
+
+    # Visit FK reconciliation:
+    # Step 1: Assign visit_occurrence_id
+    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+
+    # Step 2: Assign visit_detail_id
+    if 'Visit_detail' in omop_data and omop_data['Visit_detail']:
+        logger.info("Starting visit_detail FK reconciliation")
+        DDP.assign_visit_detail_ids_to_events(omop_data)
+
     logger.info(f"-- after reconcile parsing string from file:{filepath} keys:{omop_data.keys()} p:{len(omop_data['Person'])} m:{len(omop_data['Measurement'])} ")
     if omop_data is not None or len(omop_data) < 1:
         dataframe_dict = create_omop_domain_dataframes(omop_data, filepath)
     else:
         logger.error(f"no data from {filepath}")
-        
+
     if write_csv_flag:
         write_csvs_from_dataframe_dict(dataframe_dict, base_name, "output")
     return dataframe_dict
@@ -302,7 +326,16 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
                 raise Exception(msg)
 
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
-    DDP.reconcile_visit_foreign_keys(omop_data)
+
+    # Visit FK reconciliation:
+    # Step 1: Assign visit_occurrence_id
+    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+
+    # Step 2: Assign visit_detail_id
+    if 'Visit_detail' in omop_data and omop_data['Visit_detail']:
+        logger.info("Starting visit_detail FK reconciliation")
+        DDP.assign_visit_detail_ids_to_events(omop_data)
+
     return omop_data
 
 
@@ -314,7 +347,15 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
     base_name = os.path.basename(filepath)
 
     omop_data = DDP.parse_doc(filepath, get_meta_dict())
-    DDP.reconcile_visit_foreign_keys(omop_data)
+
+    # Visit FK reconciliation:
+    # Step 1: Assign visit_occurrence_id
+    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+
+    # Step 2: Assign visit_detail_id
+    if 'Visit_detail' in omop_data and omop_data['Visit_detail']:
+        logger.info("Starting visit_detail FK reconciliation")
+        DDP.assign_visit_detail_ids_to_events(omop_data)
 
     if omop_data is not None or len(omop_data) < 1:
         dataframe_dict = create_omop_domain_dataframes(omop_data, filepath)
@@ -327,7 +368,7 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
 
     return dataframe_dict
 
-    
+
 @typechecked
 def dict_summary(my_dict):
     for key in my_dict:
@@ -376,7 +417,7 @@ def export_to_foundry(domain_name, df):
 
         
 def combine_datasets(omop_dataset_dict):    
-    
+
     # COMBINE like datasets
     # We need to collect all files/datasets that have the same expected_domain_id.
     # For example, the Measurement domain, rows for the measurement table can 
@@ -386,11 +427,15 @@ def combine_datasets(omop_dataset_dict):
     # Two dictionaries at play here:
     # 1 is the omop_dataset_dict which is a dictionary of datasets keyed by their domain_keys or config filenames
     # 2 is the config data that comes from get_meta_dict
-    
+
     file_to_domain_dict = build_file_to_domain_dict(get_meta_dict())
     domain_dataset_dict = {}
     for filename in omop_dataset_dict:
-        domain_id = file_to_domain_dict[filename]
+        # Special case: visit_detail is created directly, not from a config file
+        if filename == 'Visit_detail':
+            domain_id = 'Visit_detail'
+        else:
+            domain_id = file_to_domain_dict[filename]
         if filename in omop_dataset_dict and omop_dataset_dict[filename] is not None:
             if domain_id in domain_dataset_dict and domain_dataset_dict[domain_id] is not None:
                 domain_dataset_dict[domain_id] = pd.concat([ domain_dataset_dict[domain_id], omop_dataset_dict[filename] ])
@@ -398,7 +443,7 @@ def combine_datasets(omop_dataset_dict):
                 domain_dataset_dict[domain_id] = omop_dataset_dict[filename]      
         else:
             logger.error(f"NO DATA for config {filename} in LD.combine_datasets()")
-            
+
     return domain_dataset_dict
 
 
