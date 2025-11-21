@@ -3,7 +3,15 @@ import prototype_2.value_transformations as VT
 
 # This configuration has been updated to apply the same detailed priority logic from visit.py
 # to the encompassingEncounter path, as requested in the PR review.
-# The priority is: 1) Primary Code, 2) Translations, 3) Location Code, 4) Location Translations.
+# The priority is: 1) Primary Code, 2) Translations, 3) Location Code, 4) Location Translations
+
+# NOTE: to make this work for ccda_omop_coverage, a template ID of 0.0.1 is inserted by
+# the script that generates metadata_tuples. This is so that the section snooper data
+# can be used with encompassingEncounters.
+# Person elements follow a different path at present,
+# but this method probably needs to be repeated for other elements extracted from 
+# the header. 
+
 
 metadata = {
     'Visit_encompassingEncounter': {
