@@ -84,6 +84,7 @@ from typeguard import typechecked
 
 from prototype_2 import value_transformations as VT
 from prototype_2.metadata import get_meta_dict
+from prototype_2 import ddl as DDL
 
 
 logger = logging.getLogger(__name__)
@@ -650,13 +651,13 @@ def parse_config_for_single_root(root_element, root_path, config_name,
          You may have more than one such root element, each making for a row in the output.
 
         If the configuration includes a field of config_type DOMAIN, the value it generates
-        will be compared to the domain specified in the config in. If they are different, null is returned.
-        This is how  OMOP "domain routing" is implemented here.
+        will be compared to the domain specified in the config in expected_domain_id. If they are different, null is returned.
+        This is how  OMOP "domain routing" is implemented here. 
 
 
-         Returns output_dict, a record
+         Returns output_dict, a record, a single row for the domain involved.
     """
-    output_dict = {} #  :dict[str, any]  a record
+    output_dict = {} #  :dict[str, any]  a record, a single row for a given domain.
     domain_id = None
     logger.info((f"DDP.parse_config_for_single_root()  ROOT for config:{config_name}, we have tag:{root_element.tag}"
                  f" attributes:{root_element.attrib}"))
@@ -755,7 +756,10 @@ def parse_config_from_xml_file(tree, config_name,
                            config_dict :dict[str, dict[str, str | None]], filename, 
                            pk_dict :dict[str, list[any]]) -> list[ dict[str,  None | str | float | int | int64 | datetime.datetime | datetime.date] | None  ] | None:
                                                                    
-    """ The main logic is here.
+    """ 
+    Basically returns a list of rows for one domain that a parse configuration, config_name, creates.
+
+        The main logic is here.
         Given a tree from ElementTree representing a CCDA document
         (ClinicalDocument, not just file),
         parse the different domains out of it (1 config each), linking PK and FKs between them.
@@ -864,6 +868,7 @@ INPATIENT_CONCEPT_IDS = {
 MAX_PARENT_DURATION_DAYS = 367
 
 
+@typechecked
 def get_visit_duration_days(visit_dict: OMOPRecord) -> float | None:
     """
     Calculate visit duration in days.
@@ -897,6 +902,7 @@ def get_visit_duration_days(visit_dict: OMOPRecord) -> float | None:
         return None
 
 
+@typechecked
 def identify_inpatient_parents(visit_list: list[OMOPRecord]) -> list[OMOPRecord]:
     """
     Identify inpatient parent visits that are meaningful and time-bounded.
@@ -934,6 +940,7 @@ def identify_inpatient_parents(visit_list: list[OMOPRecord]) -> list[OMOPRecord]
     return eligible_parents
 
 
+@typechecked
 def is_temporally_contained(child_dict: OMOPRecord, parent_dict: OMOPRecord) -> bool:
     """
     Check if child visit is temporally contained within parent visit.
@@ -965,6 +972,7 @@ def is_temporally_contained(child_dict: OMOPRecord, parent_dict: OMOPRecord) -> 
     return parent_start <= child_start and parent_end >= child_end
 
 
+@typechecked
 def find_most_specific_parent(child_dict: OMOPRecord,
                               potential_parents: list[OMOPRecord]) -> int64 | None:
     """
@@ -1049,6 +1057,7 @@ def find_most_specific_parent(child_dict: OMOPRecord,
     return None
 
 
+@typechecked
 def create_visit_detail_record(visit_dict: OMOPRecord,
                                top_level_parent_id: int64,
                                immediate_parent_id: int64 | None = None) -> OMOPRecord:
@@ -1100,86 +1109,110 @@ def create_visit_detail_record(visit_dict: OMOPRecord,
     return detail_record
 
 
-def reclassify_nested_visit_occurrences_as_detail(omop_dict: dict[str, list[OMOPRecord]]) -> dict[str, list[OMOPRecord]]:
+@typechecked
+def reclassify_nested_visit_occurrences_as_detail(omop_dict: dict[str, list[OMOPRecord] | None]) -> dict[str, list[OMOPRecord] | None]:
     """
-    Reclassify nested visit_occurrence records as visit_detail records.
-    This function is called after all parsing is complete.
+    Main entry point for visit hierarchy processing.
+    Merges visits from both 'Visit' and 'Visit_encompassingEncounter' configs,
+    deduplicates them, processes hierarchy, and creates visit_detail records.
 
-    Process:
-    1. Identify inpatient parent visits (<= 1 year duration)
-    2. For each visit, find its most specific parent
-    3. Only top-level parents (no parent themselves) stay in visit_occurrence
-    4. All nested visits go to visit_detail with visit_detail_parent_id for multi-level nesting
+    Strategy:
+    1. Collect visits from both configs
+    2. Deduplicate (keep 'Visit' when duplicate exists with 'Visit_encompassingEncounter')
+    3. Process merged list as unified hierarchy
+    4. Put results in 'Visit' config and create 'VISITDETAIL_visit_occurrence' config
 
     Args:
-        omop_dict: Dictionary of domain → list of records (from parse_doc)
+        omop_dict: Dictionary of config_name → list of records
 
     Returns:
         Updated omop_dict with:
-        - Modified visit (visit_occurrence) list (parents + standalone)
-        - New visit_detail list (nested children)
+        - 'Visit': top-level visit_occurrence records (merged from both configs)
+        - 'VISITDETAIL_visit_occurrence': visit_detail records
+        - 'Visit_encompassingEncounter': removed (merged into 'Visit')
     """
-    # Find Visit in omop_dict
-    visit_key = None
+    # Step 1: Collect visits from both configs
+    all_visits = []
+
     if 'Visit' in omop_dict and omop_dict['Visit']:
-        visit_key = 'Visit'
+        all_visits.extend(omop_dict['Visit'])
+        logger.info(f"Collected {len(omop_dict['Visit'])} visits from 'Visit' config")
 
-    if not visit_key:
-        logger.info("No visit_occurrence data found for hierarchy processing")
+    if 'Visit_encompassingEncounter' in omop_dict and omop_dict['Visit_encompassingEncounter']:
+        all_visits.extend(omop_dict['Visit_encompassingEncounter'])
+        logger.info(f"Collected {len(omop_dict['Visit_encompassingEncounter'])} visits from 'Visit_encompassingEncounter' config")
+
+    if not all_visits:
+        logger.info("No visit data found to process")
         return omop_dict
 
-    visit_list = omop_dict[visit_key]
-    if not visit_list:
-        logger.info("Empty visit_occurrence list")
-        return omop_dict
+    logger.info(f"Total visits collected before deduplication: {len(all_visits)}")
 
-    logger.info(f"Processing visit hierarchy for {len(visit_list)} visits")
+    # Step 2: Deduplicate - keep 'Visit' when duplicate exists
+    # Two visits are duplicates if all fields match EXCEPT 'cfg_name'
+    visit_map = {}  # Key: tuple of all fields except cfg_name, Value: visit record
 
-    # Step 1: Identify inpatient parents
-    parent_visits = identify_inpatient_parents(visit_list)
+    for visit in all_visits:
+        # Create key from all fields except 'cfg_name'
+        key_fields = {k: v for k, v in visit.items() if k != 'cfg_name'}
+        key = tuple(sorted(key_fields.items()))
 
-    if not parent_visits:
-        logger.info("No inpatient parent visits found - returning original visit_occurrence")
-        return omop_dict
+        if key in visit_map:
+            # Duplicate found - keep 'Visit' over 'Visit_encompassingEncounter'
+            existing = visit_map[key]
+            if existing.get('cfg_name') == 'Visit_encompassingEncounter' and visit.get('cfg_name') == 'Visit':
+                visit_map[key] = visit  # Replace with 'Visit'
+            # Otherwise keep existing (already 'Visit' or both are same config)
+        else:
+            visit_map[key] = visit
 
+    deduplicated_visits = list(visit_map.values())
+    logger.info(f"After deduplication: {len(deduplicated_visits)} unique visits (removed {len(all_visits) - len(deduplicated_visits)} duplicates)")
+
+    # Step 3: Process hierarchy on deduplicated visits
+    # Identify potential parent visits (inpatient with valid duration)
+    parent_visits = identify_inpatient_parents(deduplicated_visits)
     logger.info(f"Identified {len(parent_visits)} potential parent visits")
 
-    # Step 2: For each visit, determine if it should be nested and find its most specific parent
+    if not parent_visits:
+        logger.info("No inpatient parent visits found - all visits stay as visit_occurrence")
+        omop_dict['Visit'] = deduplicated_visits
+        if 'Visit_encompassingEncounter' in omop_dict:
+            del omop_dict['Visit_encompassingEncounter']
+        return omop_dict
+
+    # Build parent mapping for each visit
     visit_to_parent_map = {}
     nested_visit_ids = set()
+    visit_lookup = {v.get('visit_occurrence_id'): v for v in deduplicated_visits}
 
-    # Create lookup dict for faster access
-    visit_lookup = {v.get('visit_occurrence_id'): v for v in visit_list}
-
-    for visit in visit_list:
+    for visit in deduplicated_visits:
         visit_id = visit.get('visit_occurrence_id')
 
         # Find the most specific parent for this visit
         most_specific_parent_id = find_most_specific_parent(visit, parent_visits)
 
         if most_specific_parent_id is not None:
-            # This visit has a parent, so it should be nested
             visit_to_parent_map[visit_id] = most_specific_parent_id
             nested_visit_ids.add(visit_id)
             logger.debug(f"Visit {visit_id} will be nested under parent {most_specific_parent_id}")
 
     logger.info(f"Found {len(nested_visit_ids)} visits to be nested")
 
-    # Step 3: Identify which parent visits are themselves nested (multi-level scenario)
+    # Step 4: Identify multi-level nesting (parents that are themselves nested)
     parent_ids = {p.get('visit_occurrence_id') for p in parent_visits}
     nested_parent_ids = parent_ids & nested_visit_ids
 
     logger.info(f"Found {len(parent_ids - nested_parent_ids)} top-level parents and {len(nested_parent_ids)} nested parents")
 
-    # Step 4: Create visit_detail records for all nested visits
+    # Step 5: Create visit_detail records for all nested visits
     visit_detail_list = []
-
     for visit_id in nested_visit_ids:
         visit = visit_lookup.get(visit_id)
         if visit:
             immediate_parent_id = visit_to_parent_map[visit_id]
 
-            # Find the top-level visit_occurrence_id by traversing up the hierarchy
+            # Find top-level visit_occurrence_id by traversing up hierarchy
             top_level_parent_id = immediate_parent_id
             while top_level_parent_id in visit_to_parent_map:
                 top_level_parent_id = visit_to_parent_map[top_level_parent_id]
@@ -1198,16 +1231,22 @@ def reclassify_nested_visit_occurrences_as_detail(omop_dict: dict[str, list[OMOP
 
     logger.info(f"Created {len(visit_detail_list)} visit_detail records")
 
-    # Step 5: Create final visit_occurrence (remove ALL nested children, keep only top-level)
-    final_visit_occurrence = [v for v in visit_list if v.get('visit_occurrence_id') not in nested_visit_ids]
-
-    logger.info(f"Removed {len(nested_visit_ids)} nested visits from visit_occurrence")
+    # Step 6: Create final visit_occurrence (remove nested children, keep only top-level)
+    final_visit_occurrence = [v for v in deduplicated_visits if v.get('visit_occurrence_id') not in nested_visit_ids]
     logger.info(f"Final visit_occurrence contains {len(final_visit_occurrence)} records")
 
-    # Update omop_dict
-    omop_dict[visit_key] = final_visit_occurrence
+    # Step 7: Update omop_dict with results
+    omop_dict['Visit'] = final_visit_occurrence
+
+    # Remove 'Visit_encompassingEncounter' config (merged into 'Visit')
+    if 'Visit_encompassingEncounter' in omop_dict:
+        del omop_dict['Visit_encompassingEncounter']
+        logger.info("Removed 'Visit_encompassingEncounter' config (merged into 'Visit')")
+
+    # Create 'VISITDETAIL_visit_occurrence' config with visit_detail records
     if visit_detail_list:
-        omop_dict['Visit_detail'] = visit_detail_list
+        omop_dict['VISITDETAIL_visit_occurrence'] = visit_detail_list
+        logger.info(f"Created 'VISITDETAIL_visit_occurrence' config with {len(visit_detail_list)} records")
 
     return omop_dict
 
@@ -1252,13 +1291,15 @@ domain_dates = {
                     'id': 'device_exposure_id'},
 }
 
-@typechecked 
+
+@typechecked
 def strip_tz(dt): # Strip timezone
     if isinstance(dt, datetime.datetime) and dt.tzinfo is not None:
         return dt.replace(tzinfo=None)
     return dt
 
-@typechecked 
+
+@typechecked
 def reconcile_visit_FK_with_specific_domain(domain: str, 
                                             domain_dict: list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] ] | None , 
                                             visit_dict:  list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] ] | None):
@@ -1269,7 +1310,7 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
     if domain_dict is None:
         logger.error(f"no data for {domain} in reconcile_visit_FK_with_specific_domain, reconcilliation")
         return
-    
+
     # Only Measurement, Observation, Condition, Procedure, Drug, and Device participate in Visit FK reconciliation
     if domain not in domain_dates:
         logger.error(f"no metadata for domain {domain} in reconcile_visit_FK_with_specific_domain, reconcilliation")
@@ -1424,29 +1465,29 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
 
 
 @typechecked
-def assign_visit_occurrence_ids_to_events(data_dict :dict[str, 
-                                                 list[ dict[str,  None | str | float | int |int64 | datetime.datetime | datetime.date] | None  ] | None]) :
+def assign_visit_occurrence_ids_to_events(data_dict: dict[str,
+                                                             list[dict[str, None | str | float | int | int64 | datetime.datetime | datetime.date] | None] | None]):
     # data_dict is a dictionary of config_names to a list of record-dicts
     # Only Measurement, Observation, Condition, Procedure, Drug, and Device participate in Visit FK reconciliation
-    metadata = [
-        ('Measurement', 'Measurement_results'),
-        ('Measurement', 'Measurement_vital_signs'),
-        ('Observation', 'Observation'),
-        ('Condition',   'Condition'),
-        ('Procedure',   'Procedure_activity_procedure'),
-        ('Procedure',   'Procedure_activity_observation'),
-        ('Procedure',   'Procedure_activity_act'),
-        ('Drug',        'Medication_medication_activity'),
-        ('Drug',        'Medication_medication_dispense'),
-        ('Drug',        'Immunization_immunization_activity'),
-        ('Device',      'Device_organizer_supply'),
-        ('Device',      'Device_supply'),
-        ('Device',      'Device_organizer_procedure'),
-        ('Device',      'Device_procedure'),
-    ]
+    # Visit hierarchy processing (reclassify_nested_visit_occurrences_as_detail) merges both
+    # Visit and Visit_encompassingEncounter configs, so by this point all visits (visit_occurrence) are in 'Visit'.
+    VISIT_CFG_NAME = 'Visit'
 
-    for meta_tuple in metadata:
-        reconcile_visit_FK_with_specific_domain(meta_tuple[0], data_dict[meta_tuple[1]], data_dict['Visit'])
+    # Use ddl.py mappings as single source of truth
+    config_to_domain_map = DDL.config_to_domain_name_dict
+
+    # Only process configs that exist in data_dict and have clinical events needing visit reconciliation
+    for cfg_name, domain_name in config_to_domain_map.items():
+        if cfg_name in data_dict and data_dict[cfg_name]:
+            if domain_name in ['Measurement', 'Observation', 'Condition', 'Procedure', 'Drug', 'Device']:
+                reconcile_visit_FK_with_specific_domain(domain_name, data_dict[cfg_name], data_dict[VISIT_CFG_NAME])
+
+    for cfg_name, domain_name in config_to_domain_map.items():
+        if cfg_name in data_dict and data_dict[cfg_name]:
+            if domain_name in ['Measurement', 'Observation', 'Condition', 'Procedure', 'Drug', 'Device']:
+                for record in data_dict[cfg_name]:
+                    if '__visit_candidates' in record:
+                        del record['__visit_candidates']
 
 
 @typechecked
@@ -1462,38 +1503,25 @@ def assign_visit_detail_ids_to_events(data_dict: dict[str,
     (smallest duration) visit_detail.
 
     Args:
-        data_dict: Dictionary with domain data and visit_detail table
+        data_dict: Dictionary with config_name → list of records (omop_dict)
     """
-    if 'Visit_detail' not in data_dict or not data_dict['Visit_detail']:
+    VISIT_DETAIL_CFG_NAME = 'VISITDETAIL_visit_occurrence'
+
+    if VISIT_DETAIL_CFG_NAME not in data_dict or not data_dict[VISIT_DETAIL_CFG_NAME]:
         logger.info("No visit_detail records found - skipping visit_detail FK reconciliation")
         return
 
-    visit_detail_list = data_dict['Visit_detail']
+    visit_detail_list = data_dict[VISIT_DETAIL_CFG_NAME]
+    logger.info(f"Processing visit_detail FK reconciliation for {len(visit_detail_list)} visit_detail records")
 
-    # Metadata for domains that need visit_detail reconciliation
-    metadata = [
-        ('Measurement', 'Measurement_results'),
-        ('Measurement', 'Measurement_vital_signs'),
-        ('Observation', 'Observation'),
-        ('Condition', 'Condition'),
-        ('Procedure', 'Procedure_activity_procedure'),
-        ('Procedure', 'Procedure_activity_observation'),
-        ('Procedure', 'Procedure_activity_act'),
-        ('Drug', 'Medication_medication_activity'),
-        ('Drug', 'Medication_medication_dispense'),
-        ('Drug', 'Immunization_immunization_activity'),
-        ('Device', 'Device_organizer_supply'),
-        ('Device', 'Device_supply'),
-        ('Device', 'Device_organizer_procedure'),
-        ('Device', 'Device_procedure'),
-    ]
+    # Use ddl.py mappings as single source of truth
+    config_to_domain_map = DDL.config_to_domain_name_dict
 
-    for meta_tuple in metadata:
-        domain = meta_tuple[0]
-        config_name = meta_tuple[1]
-
-        if config_name in data_dict and data_dict[config_name]:
-            reconcile_visit_detail_FK_with_specific_domain(domain, data_dict[config_name], visit_detail_list)
+    # Only process configs that exist and have clinical events needing visit_detail reconciliation
+    for cfg_name, domain_name in config_to_domain_map.items():
+        if cfg_name in data_dict and data_dict[cfg_name]:
+            if domain_name in ['Measurement', 'Observation', 'Condition', 'Procedure', 'Drug', 'Device']:
+                reconcile_visit_detail_FK_with_specific_domain(domain_name, data_dict[cfg_name], visit_detail_list)
 
 
 @typechecked
@@ -1754,19 +1782,19 @@ def parse_doc(file_path,
         else:
             omop_dict[config_name] = data_dict_list
             
-        #if data_dict_list is not None:
-        #    print(f"...PARSED, got {len(data_dict_list)}")
-        #else:
-        #    print(f"...PARSED, got **NOTHING** {data_dict_list} ")
 
-#    # Post-process: Create visit_detail from visit hierarchy
-#    try:
-#        omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
-#
-#    except Exception as e:
-#        logger.error(f"Error processing visit hierarchy: {e}")
-#        logger.error(traceback.format_exc())
-#        # Continue with original data if hierarchy processing fails
+    # Try:
+    omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
+    # No. Crash loudly and publicly if this threw an exception that is so mysterious
+    # we catch with something as broad as Exception.
+    # We are not operating on such a tight schedule that glossing over an unknown
+    # here, and hoping the error is noticed in the logs.  There is no automated
+    # process for scanning them. It's a human effort that never happens in
+    # production.
+    #except Exception as e:
+    #    logger.error(f"Error processing visit hierarchy: {e}")
+    #    logger.error(traceback.format_exc())
+    #    # Continue with original data if hierarchy processing fails
 
     return omop_dict
 

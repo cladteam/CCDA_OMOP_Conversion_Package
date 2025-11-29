@@ -19,11 +19,9 @@ import io
 import os
 import re
 import logging
-import duckdb
 import importlib.util
 from typing import Dict, Any
 
-conn = duckdb.connect()
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format='%(levelname)s: %(message)s',
@@ -33,14 +31,15 @@ logging.basicConfig(
     # level=logging.WARNING level=logging.ERROR # level=logging.INFO # level=logging.DEBUG
 )
 
-processing_status = True
 
 
 METADATA_DIR = os.path.join(os.path.dirname(__file__), 'metadata')
 
 
-def generate_domain_map_dynamically() -> Dict[str, str]:
+def generate_cfg_name_to_domain_map() -> Dict[str, str]:
     """
+    Dict[table_name] --> domain name
+
     Scans all .py files in the metadata directory, inspects their
     'metadata' variable, and builds a dictionary mapping config names
     to their 'expected_domain_id'.
@@ -77,16 +76,18 @@ def generate_domain_map_dynamically() -> Dict[str, str]:
                     logging.warning(f"Module '{module_name}' does not contain a 'metadata' dictionary.")
             except Exception as e:
                 logging.error(f"Failed to process metadata from '{filename}': {e}")
+
     return domain_map
 
 
-config_to_domain_name_dict = generate_domain_map_dynamically()
+config_to_domain_name_dict = generate_cfg_name_to_domain_map()
+
 
 domain_name_to_table_name = {
     'Care_Site'  : 'care_site',
     'Condition'  : 'condition_occurrence',
     'Drug'       : 'drug_exposure',
-    'Location'   : 'location', 
+    'Location'   : 'location',
     'Measurement': 'measurement',
     'Observation': 'observation',
     'Person'     : 'person',
@@ -94,12 +95,11 @@ domain_name_to_table_name = {
     'Provider'   : 'provider',
     'Visit'      : 'visit_occurrence',
     'Device'     : 'device_exposure',
-    'Visit_detail': 'visit_detail',
-
+    'VisitDetail': 'visit_detail',
 }
 
 sql_import_dict = {
-    'Device':{
+    'Device': {
         'column_list': [
             'device_exposure_id',
             'person_id',
@@ -117,7 +117,7 @@ sql_import_dict = {
             'device_source_value',
             'device_source_concept_id'
         ],
-        'sql': None, 
+        'sql': None,
         'table_name': "device_exposure",
         'pk_query': """
                 SELECT count(*) as row_ct, 
@@ -126,7 +126,7 @@ sql_import_dict = {
                 FROM device_exposure
                 """
     },
-    'Procedure':{
+    'Procedure': {
         'column_list': [
             'procedure_occurrence_id',
             'person_id',
@@ -143,7 +143,7 @@ sql_import_dict = {
             'procedure_source_concept_id',
             'modifier_source_value'
         ],
-        'sql': None, 
+        'sql': None,
         'table_name': "procedure_occurrence",
         'pk_query': """
                 SELECT count(*) as row_ct, 
@@ -152,7 +152,7 @@ sql_import_dict = {
                 FROM procedure_occurrence
                 """
     },
-    'Drug':{
+    'Drug': {
         'column_list': [
             'drug_exposure_id',
             'person_id',
@@ -178,7 +178,7 @@ sql_import_dict = {
             'route_source_value',
             'dose_unit_source_value'
         ],
-        'sql': None, 
+        'sql': None,
         'table_name': "drug_exposure",
         'pk_query': """
                 SELECT count(*) as row_ct, 
@@ -187,7 +187,7 @@ sql_import_dict = {
                 FROM drug_exposure
                 """
     },
-    'Observation':{
+    'Observation': {
         'column_list': [
             'observation_id',
             'person_id',
@@ -208,7 +208,7 @@ sql_import_dict = {
             'unit_source_value',
             'qualifier_source_value'
         ],
-        'sql': None, 
+        'sql': None,
         'table_name': "observation",
         'pk_query': """
                 SELECT count(*) as row_ct, 
@@ -216,8 +216,8 @@ sql_import_dict = {
                        count(distinct observation_id) as d_p_id
                 FROM observation
                 """
-    },   
-    'Location':{
+    },
+    'Location': {
         'column_list': [
             'location_id', 'address_1', 'address_2', 'city', 'state', 'zip', 
             'county', 'location_source_value'
@@ -231,9 +231,7 @@ sql_import_dict = {
                 FROM location
                 """
     },
-    
-
-    'Provider':{
+    'Provider': {
         'column_list': [
             'provider_id',
             'provider_name',
@@ -249,7 +247,7 @@ sql_import_dict = {
             'gender_source_value',
             'gender_source_concept_id'
         ],
-        'sql': None, 
+        'sql': None,
         'table_name': "provider",
         'pk_query': """
                 SELECT count(*) as row_ct, 
@@ -258,8 +256,8 @@ sql_import_dict = {
                 FROM provider
                 """
     },
-    'Care_Site':{
-        'column_list': [     
+    'Care_Site': {
+        'column_list': [
             'care_site_id',
             'care_site_name',
             'place_of_service_concept_id',
@@ -295,47 +293,47 @@ sql_import_dict = {
     },
     'Visit': {
         'column_list': [
-                    'visit_occurrence_id', 
-                    'person_id', 
+                    'visit_occurrence_id',
+                    'person_id',
                     'visit_concept_id',
-                    'visit_start_date', 'visit_start_datetime', 
-                    'visit_end_date', 'visit_end_datetime', 
-                    'visit_type_concept_id', 
-                    'provider_id', 'care_site_id', 
-                    'visit_source_value', 'visit_source_concept_id', 
-                    'admitting_source_concept_id', 'admitting_source_value', 
-                    'discharge_to_source_concept_id', 'discharge_to_source_value', 
+                    'visit_start_date', 'visit_start_datetime',
+                    'visit_end_date', 'visit_end_datetime',
+                    'visit_type_concept_id',
+                    'provider_id', 'care_site_id',
+                    'visit_source_value', 'visit_source_concept_id',
+                    'admitting_source_concept_id', 'admitting_source_value',
+                    'discharge_to_source_concept_id', 'discharge_to_source_value',
                     'preceding_visit_occurrence_id'
                     ],
         'sql': None,
         'table_name': "visit_occurrence",
         'pk_query': """
-                SELECT count(*) as row_ct, 
-                       count(visit_occurrence_id) as p_id, 
+                SELECT count(*) as row_ct,
+                       count(visit_occurrence_id) as p_id,
                        count(distinct visit_occurrence_id) as d_p_id
                 FROM visit_occurrence
                 """
     },
-    'Visit_detail': {
+    'VisitDetail': {
         'column_list': [
-                    'visit_detail_id', 
-                    'person_id', 
+                    'visit_detail_id',
+                    'person_id',
                     'visit_detail_concept_id',
-                    'visit_detail_start_date', 'visit_detail_start_datetime', 
-                    'visit_detail_end_date', 'visit_detail_end_datetime', 
-                    'visit_detail_type_concept_id', 
-                    'provider_id', 'care_site_id', 
-                    'visit_detail_source_value', 'visit_detail_source_concept_id', 
-                    'admitting_source_concept_id', 'admitting_source_value', 
-                    'discharge_to_source_concept_id', 'discharge_to_source_value', 
+                    'visit_detail_start_date', 'visit_detail_start_datetime',
+                    'visit_detail_end_date', 'visit_detail_end_datetime',
+                    'visit_detail_type_concept_id',
+                    'provider_id', 'care_site_id',
+                    'visit_detail_source_value', 'visit_detail_source_concept_id',
+                    'admitting_source_concept_id', 'admitting_source_value',
+                    'discharge_to_source_concept_id', 'discharge_to_source_value',
                     'preceding_visit_detail_id', 'visit_detail_parent_id',
                     'visit_occurrence_id'
                     ],
         'sql': None,
         'table_name': "visit_detail",
         'pk_query': """
-                SELECT count(*) as row_ct, 
-                       count(visit_detail_id) as p_id, 
+                SELECT count(*) as row_ct,
+                       count(visit_detail_id) as p_id,
                        count(distinct visit_detail_id) as d_p_id
                 FROM visit_detail
                 """
@@ -355,8 +353,8 @@ sql_import_dict = {
         'sql': None,
         'table_name': "measurement",
         'pk_query': """
-                SELECT count(*) as row_ct, 
-                       count(measurement_id) as p_id, 
+                SELECT count(*) as row_ct,
+                       count(measurement_id) as p_id,
                        count(distinct measurement_id) as d_p_id
                 FROM measurement
                 """
@@ -364,11 +362,11 @@ sql_import_dict = {
     'Condition': {
         'column_list': [
                     'condition_occurrence_id', ' person_id', 'condition_concept_id',
-                    'condition_start_date', 'condition_start_datetime', 
+                    'condition_start_date', 'condition_start_datetime',
                     'condition_end_date', 'condition_end_datetime'
-                    'condition_type_concept_id', 
+                    'condition_type_concept_id',
                     'condition_status_concept_id',
-                    'stop_reason', 
+                    'stop_reason',
                     'provider_id',
                     'visit_occurrence_id', 'visit_detail_id',
                     'condition_source_value', 'condition_source_concept_id',
@@ -377,134 +375,10 @@ sql_import_dict = {
         'sql': None,
         'table_name': "condition_occurrence",
         'pk_query': """### TODO
-                SELECT count(*) as row_ct, 
-                       count(condition_occurrence_id) as p_id, 
+                SELECT count(*) as row_ct,
+                       count(condition_occurrence_id) as p_id,
                        count(distinct condition_occurrence_id) as d_p_id
                 FROM condition_occurrence
                 """
     }
 }
-
-def init_sql_import_dict():
-    for key in sql_import_dict:
-        sql_import_dict[key]['sql'] = f"""
-                INSERT INTO TABLENAME SELECT
-                {", ".join(sql_import_dict[key]['column_list'])} 
-                FROM  read_csv('FILENAME', delim=',', header=True)
-               """
-    print(sql_import_dict)
-
-
-def _apply_local_ddl():
-    x=conn.execute(person_ddl)
-    x=conn.execute(visit_ddl)
-    x=conn.execute(measurement_ddl)
-    x=conn.execute(procedure_ddl)
-    x=conn.execute(drug_ddl)
-    x=conn.execute(device_ddl)
-    df = conn.sql("SHOW ALL TABLES;").df()
-    print(df[['database', 'schema', 'name']])
-
-
-def _apply_ddl(ddl_file):
-    print(f"Applying DDL file {ddl_file}")
-    with io.open(OMOP_CDM_DIR +  ddl_file, "r") as ddl_file:
-        ddl_statements = ddl_file.read()
-        for statement in ddl_statements.split(";"):
-            statement = statement.replace("@cdmDatabaseSchema.", "") + ";"
-            x=conn.execute(statement)
-
-
-    print("o======================================")
-    df = conn.sql("SHOW ALL TABLES;").df()
-    print(df[['database', 'schema', 'name']])
-
-
-def _import_CSVs(domain):
-    print(f"Importing domain {domain} data")
-    files = [f for f in os.listdir(OMOP_CSV_DATA_DIR) if os.path.isfile(os.path.join(OMOP_CSV_DATA_DIR, f)) ]
-    files = [f for f in files if  re.match('.*' + f"{domain}" + '.csv',f) ]
-    for csv_filename in files:
-        try:
-            sql_string = sql_import_dict[domain]['sql']
-            table_name = sql_import_dict[domain]['table_name']
-            sql_string = sql_string.replace('FILENAME', OMOP_CSV_DATA_DIR + csv_filename)
-            sql_string = sql_string.replace('TABLENAME', table_name)
-            # How to check for empty file?
-            if os.stat("output/" + csv_filename).st_size > 2:
-                output_path = f"output/{csv_filename}"
-                # print(f"loading file {csv_filename}  {output_path}  size:{os.stat(output_path).st_size}")
-                try:
-                    x=conn.execute(sql_string)
-                    logger.info(f"Loaded {domain} from {csv_filename}")
-                except Exception as e:
-                    processing_status = False
-                    print(f"Failed to load {domain} from {csv_filename}")
-                    print(e)
-                    logger.error(f"Failed to load {domain} from {csv_filename}")
-                    logger.error(e)
-                #print(x.df())
-            #else:
-                #print(f"skipping small size file {csv_filename}")
-        except duckdb.BinderException as e:
-            logger.error(f"Failed to read {csv_filename} {type(e)} {e}")
-
-
-def check_PK(domain):
-    print(f"Checking PK on domain {domain} ")
-    table_name = sql_import_dict[domain]['table_name']
-    pk_query = sql_import_dict[domain]['pk_query']
-    table_name = sql_import_dict[domain]['table_name']
-    df=conn.sql(f"SELECT * from  {table_name}").df()
-    df=conn.sql(pk_query).df()
-    if df['row_ct'][0] != df['p_id'][0]:
-        logger.error("row count not the same as id count, null IDs?")
-        processing_status = False
-    if df['p_id'][0] != df['d_p_id'][0]:
-        logger.error("id count not the same as distinct ID count, non-unique IDs?")
-
-
-
-def main():
-    print("\nDDL")
-    #_apply_ddl("OMOPCDM_duckdb_5.3_ddl.sql")
-    #_apply_ddl("OMOPCDM_duckdb_5.3_ddl_with_constraints.sql")
-    #_apply_ddl("OMOPCDM_duckdb_5.3_ddl_with_constraints_and_string_PK.sql")
-    _apply_ddl("OMOPCDM_duckdb_5.3_ddl_with_constraints_and_bigint_PK.sql")
-
-    domain_list = ['Person', 'Visit', 'Provider', 'Care_Site', 'Location',
-               'Measurement', 'Drug', 'Procedure', 'Device', 'Observation', 'Visit_detail'
-    ]
-
-    for domain in domain_list:
-        print(f"\n** {domain} **")
-        _import_CSVs(domain)
-        check_PK(domain)
-
-    # not implemented in ALTER TABLE yet in v1.0
-    # https://github.com/OHDSI/CommonDataModel/issues/713
-##    _apply_ddl("OMOPCDM_duckdb_5.3_primary_keys.sql")
-##    _apply_ddl("OMOPCDM_duckdb_5.3_constraints.sql")
-
-    print("\nINDICES")
-    _apply_ddl("OMOPCDM_duckdb_5.3_indices.sql")
-
-    print("\nSQL CHECKS")
-    check_PK('Person')
-
-    if False:
-        df = conn.sql("SHOW ALL TABLES;").df()
-        print(df[['database', 'schema', 'name']])
-        print(list(df))
-
-        df = conn.sql("SHOW TABLES;").df()
-        print('"' + df['name'] + '"')
-
-    exit(processing_status)
-
-if __name__ == '__main__':
-    init_sql_import_dict()
-    main()
-    
-
-
