@@ -968,6 +968,12 @@ def is_temporally_contained(child_dict: OMOPRecord, parent_dict: OMOPRecord) -> 
     if any(x is None for x in [child_start, child_end, parent_start, parent_end]):
         return False
 
+    # Normalize timezone info to allow comparison (strip timezone if present)
+    child_start = strip_tz(child_start)
+    child_end = strip_tz(child_end)
+    parent_start = strip_tz(parent_start)
+    parent_end = strip_tz(parent_end)
+
     # Check temporal containment
     return parent_start <= child_start and parent_end >= child_end
 
