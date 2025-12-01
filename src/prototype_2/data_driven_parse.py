@@ -1750,14 +1750,7 @@ def parse_string(ccda_string, file_path,
         else:
             logger.info(f"DDP.py resulting omop_dict {config_name} empty")
 
-#    # Post-process: Create visit_detail from visit hierarchy
-#    try:
-#        omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
-#
-#    except Exception as e:
-#        logger.error(f"Error processing visit hierarchy: {e}")
-#        logger.error(traceback.format_exc())
-#        # Continue with original data if hierarchy processing fails
+    omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
 
     return omop_dict
 
