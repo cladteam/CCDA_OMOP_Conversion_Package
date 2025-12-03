@@ -1152,25 +1152,28 @@ def reclassify_nested_visit_occurrences_as_detail(omop_dict: dict[str, list[OMOP
         logger.info("No visit data found to process")
         return omop_dict
 
+    # If only one visit, no hierarchy processing needed
+    if len(all_visits) == 1:
+        logger.info("Only one visit found - no hierarchy processing needed")
+        omop_dict['Visit'] = all_visits
+        return omop_dict
+
     logger.info(f"Total visits collected before deduplication: {len(all_visits)}")
 
     # Step 2: Deduplicate - keep 'Visit' when duplicate exists
-    # Two visits are duplicates if all fields match EXCEPT 'cfg_name'
-    visit_map = {}  # Key: tuple of all fields except cfg_name, Value: visit record
+    # Use visit_occurrence_id as the unique key
+    visit_map = {}  # Key: visit_occurrence_id, Value: visit record
 
     for visit in all_visits:
-        # Create key from all fields except 'cfg_name'
-        key_fields = {k: v for k, v in visit.items() if k != 'cfg_name'}
-        key = tuple(sorted(key_fields.items()))
-
-        if key in visit_map:
+        visit_id = visit.get('visit_occurrence_id')
+        if visit_id in visit_map:
             # Duplicate found - keep 'Visit' over 'Visit_encompassingEncounter'
-            existing = visit_map[key]
+            existing = visit_map[visit_id]
             if existing.get('cfg_name') == 'Visit_encompassingEncounter' and visit.get('cfg_name') == 'Visit':
-                visit_map[key] = visit  # Replace with 'Visit'
-            # Otherwise keep existing (already 'Visit' or both are same config)
+                visit_map[visit_id] = visit  # Replace with 'Visit'
+            # Otherwise keep existing
         else:
-            visit_map[key] = visit
+            visit_map[visit_id] = visit
 
     deduplicated_visits = list(visit_map.values())
     logger.info(f"After deduplication: {len(deduplicated_visits)} unique visits (removed {len(all_visits) - len(deduplicated_visits)} duplicates)")
