@@ -893,6 +893,10 @@ def get_visit_duration_days(visit_dict: OMOPRecord) -> float | None:
     if start is None or end is None:
         return None
 
+    # Strip timezone info
+    start = strip_tz(start)
+    end = strip_tz(end)
+
     # Handle both datetime and date objects
     if isinstance(start, datetime.datetime) and isinstance(end, datetime.datetime):
         return (end - start).total_seconds() / 86400
@@ -1718,6 +1722,9 @@ def get_visit_detail_duration(visit_detail_dict: dict) -> float:
 
     # Prefer datetime for precision
     if start_datetime and end_datetime:
+        # Strip timezone to allow subtraction
+        start_datetime = strip_tz(start_datetime)
+        end_datetime = strip_tz(end_datetime)
         delta = end_datetime - start_datetime
         return delta.total_seconds() / 86400  # Convert to days
     elif start_date and end_date:
