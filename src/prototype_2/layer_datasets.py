@@ -34,7 +34,7 @@ from prototype_2.metadata import get_meta_dict
 from prototype_2.domain_dataframe_column_types import domain_dataframe_column_types 
 from prototype_2.domain_dataframe_column_types import domain_dataframe_column_required
 
-DO_VISIT_DETAIL=False
+DO_VISIT_DETAIL = False
 
 
 """ layer_datasets.py
@@ -263,8 +263,9 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
     logger.info(f"--parsing string from file:{filepath} keys:{omop_data.keys()} p:{len(omop_data['Person'])} m:{len(omop_data['Measurement'])} ")
 
     # Visit FK reconciliation:
+    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+
     if DO_VISIT_DETAIL:
-        DDP.assign_visit_occurrence_ids_to_events(omop_data)
         if 'VISITDETAIL_visit_occurrence' in omop_data and omop_data['VISITDETAIL_visit_occurrence']:
             logger.info("Starting visit_detail FK reconciliation")
             DDP.assign_visit_detail_ids_to_events(omop_data)
@@ -319,8 +320,9 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
 
     # Visit FK reconciliation:
+    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+
     if DO_VISIT_DETAIL:
-        DDP.assign_visit_occurrence_ids_to_events(omop_data)
         if 'VISITDETAIL_visit_occurrence' in omop_data and omop_data['VISITDETAIL_visit_occurrence']:
             logger.info("Starting visit_detail FK reconciliation")
             DDP.assign_visit_detail_ids_to_events(omop_data)
@@ -338,8 +340,9 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
     omop_data = DDP.parse_doc(filepath, get_meta_dict())
 
     # Visit FK reconciliation:
+    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+
     if DO_VISIT_DETAIL:
-        DDP.assign_visit_occurrence_ids_to_events(omop_data)
         if 'VISITDETAIL_visit_occurrence' in omop_data and omop_data['VISITDETAIL_visit_occurrence']:
             logger.info("Starting visit_detail FK reconciliation")
             DDP.assign_visit_detail_ids_to_events(omop_data)

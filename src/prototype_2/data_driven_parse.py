@@ -89,6 +89,7 @@ from prototype_2 import ddl as DDL
 
 logger = logging.getLogger(__name__)
 
+DO_VISIT_DETAIL = False
 
 ns = {
    # '': 'urn:hl7-org:v3',  # default namespace
@@ -1766,7 +1767,8 @@ def parse_string(ccda_string, file_path,
         else:
             logger.info(f"DDP.py resulting omop_dict {config_name} empty")
 
-    omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
+    if DO_VISIT_DETAIL:
+        omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
 
     return omop_dict
 
@@ -1793,7 +1795,8 @@ def parse_doc(file_path,
             
 
     # Try:
-    omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
+    if DO_VISIT_DETAIL:
+        omop_dict = reclassify_nested_visit_occurrences_as_detail(omop_dict)
     # No. Crash loudly and publicly if this threw an exception that is so mysterious
     # we catch with something as broad as Exception.
     # We are not operating on such a tight schedule that glossing over an unknown
