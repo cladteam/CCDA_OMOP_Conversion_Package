@@ -4,15 +4,15 @@ from numpy import float32
 import prototype_2.value_transformations as VT
 
 metadata = {
-    'Measurement_results': {
+    'MEASUREMENT-from-procedure_procedure': {
     	'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Measurement',
             # Results section
     	    'element':
     		  ("./hl7:component/hl7:structuredBody/hl7:component/hl7:section/"
-    		   "hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.3.1' or @root='2.16.840.1.113883.10.20.22.2.3']"
-    		   "/../hl7:entry/hl7:organizer/hl7:component/hl7:observation")
+    		   "hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.7' or @root='2.16.840.1.113883.10.20.22.2.7.1']"
+    		   '/../hl7:entry/hl7:procedure')
     		    # FIX: another template at the observation level here: "2.16.840.1.113883.10.20.22.4.2  Result Observation is an entry, not a section
         },
         
@@ -263,7 +263,7 @@ metadata = {
 	    },
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Measurement_results',
+            'constant_value': 'MEASUREMENT-from-procedure_procedure',
 			'order':101
 		} 	
     }

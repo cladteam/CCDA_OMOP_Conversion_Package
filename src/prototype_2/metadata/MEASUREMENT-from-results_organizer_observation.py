@@ -1,20 +1,20 @@
-
-from numpy import float32
 from numpy import int32
+from numpy import float32
 import prototype_2.value_transformations as VT
-# VITAL SIGNS
+
 metadata = {
-    'Measurement_vital_signs': {
+    'MEASUREMENT-from-results_organizer_observation': {
     	'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Measurement',
-            # Vital Signs section
+            # Results section
     	    'element':
     		  ("./hl7:component/hl7:structuredBody/hl7:component/hl7:section/"
-    		   "hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.4'  or @root='2.16.840.1.113883.10.20.22.2.4.1']"
+    		   "hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.3.1' or @root='2.16.840.1.113883.10.20.22.2.3']"
     		   "/../hl7:entry/hl7:organizer/hl7:component/hl7:observation")
+      		    # FIX: another template at the observation level here: "2.16.840.1.113883.10.20.22.4.2  Result Observation is an entry, not a section
         },
-
+        
     	'measurement_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
@@ -28,8 +28,8 @@ metadata = {
     	'measurement_id': {
     	    'config_type': 'HASH',
             'fields' : ['person_id',  'provider_id',
-                        #'visit_occurrence_id',
-                        'measurement_concept_code', 'measurement_concept_codeSystem',
+						#'visit_occurrence_id',
+						'measurement_concept_code', 'measurement_concept_codeSystem',
 						'measurement_date', 'measurement_datetime',
                         'value_as_number', 'value_as_concept_id',
 				        'measurement_id_root', 'measurement_id_extension'],
@@ -42,6 +42,7 @@ metadata = {
             'order': 2
     	},
 
+        # <code code="8029-1" codeSystem="1232.23.3.34.3..34"> 
     	'measurement_concept_code': {
     	    'config_type': 'FIELD',
     	    'element': "hl7:code" ,
@@ -81,7 +82,7 @@ metadata = {
             'order': 4
     	},
         'measurement_datetime': {
-            'config_type': 'FIELD',
+    	    'config_type': 'FIELD',
             'data_type':'DATETIME',
     	    'element': "hl7:effectiveTime",
     	    'attribute': "value",
@@ -108,6 +109,14 @@ metadata = {
     	    'element': "hl7:value",
     	    'attribute': "{http://www.w3.org/2001/XMLSchema-instance}type",
     	},
+
+    	#'value_as_string': {
+    	#    'config_type': 'FIELD',
+    	#    'element': 'hl7:value[@xsi:type="ST"]' ,
+    	#    'attribute': "#text",
+        #    # field not present in measurement table
+    	#},
+
 
     	'value_as_number_pq': {
     	    'config_type': 'FIELD',
@@ -191,13 +200,13 @@ metadata = {
     	'visit_detail_id':	{ 'config_type': None, 'order':  16 },
 
         'measurement_source_value':     {
-           'config_type': 'DERIVED',
-           'FUNCTION': VT.concat_fields,
-           'argument_names': {
-                   'first_field': 'measurement_concept_code',
-                   'second_field': 'measurement_concept_codeSystem',
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.concat_fields,
+            'argument_names': {
+                'first_field': 'measurement_concept_code',
+                'second_field': 'measurement_concept_codeSystem',
                 'default': 'n/a'
-           },
+            },
             'order':  17
         },
 
@@ -247,13 +256,13 @@ metadata = {
             'order':20
         },
 		
-	    'filename' : {
-		    'config_type': 'FILENAME',
-		    'order':100
-        },
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+	    },
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Measurement_vital_signs',
+            'constant_value': 'MEASUREMENT-from-results_organizer_observation',
 			'order':101
 		} 	
     }
