@@ -2,7 +2,7 @@
 import prototype_2.value_transformations as VT
 from numpy import int32
 metadata = {
-    'Procedure_activity_act': {
+    'PROCEDURE-from-procedure_act': {
     	'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Procedure',
@@ -143,7 +143,7 @@ metadata = {
 		},
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Procedure_activity_act',
+            'constant_value': 'PROCEDURE-from-procedure_act',
 			'order':101
 		}         
     }

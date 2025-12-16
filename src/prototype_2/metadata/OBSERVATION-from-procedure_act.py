@@ -4,7 +4,7 @@ import prototype_2.value_transformations as VT
 # Rulebook solution for creating a measurement from a procedure.Technically correct but will not have a value as number.
 
 metadata = {
-	'Procedure_activity_act_observation': {
+	'OBSERVATION-from-procedure_act': {
     	'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Observation',
@@ -138,7 +138,7 @@ metadata = {
 		},
        'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Procedure_activity_act_observation',
+            'constant_value': 'OBSERVATION-from-procedure_act',
 			'order':101
 		} 
 }

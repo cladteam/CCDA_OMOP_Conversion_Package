@@ -3,7 +3,7 @@ from numpy import float32
 import prototype_2.value_transformations as VT
 # Rulebook solution for creating a measurement from a procedure.Technically correct but will not have a value as number.
 metadata = {
-    'Procedure_activity_act_measurement': {
+    'MEASUREMENT-from-procedure_act': {
     	'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Measurement',
@@ -258,7 +258,7 @@ metadata = {
         },
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Procedure_activity_act_measurement',
+            'constant_value': 'MEASUREMENT-from-procedure_act',
 			'order':101
 		} 
     }

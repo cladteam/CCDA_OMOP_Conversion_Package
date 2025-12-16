@@ -1,9 +1,9 @@
 from numpy import int32
 from numpy import float32
 import prototype_2.value_transformations as VT
-#
+
 metadata = {
-    'Procedure_activity_procedure': {
+    'PROCEDURE-from-procedure_procedure': {
     	'root': {
     	    'config_type': 'ROOT',
             'expected_domain_id': 'Procedure',
@@ -144,7 +144,7 @@ metadata = {
 		},
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Procedure_activity_procedure',
+            'constant_value': 'PROCEDURE-from-procedure_procedure',
 			'order':101
 		} 
     }

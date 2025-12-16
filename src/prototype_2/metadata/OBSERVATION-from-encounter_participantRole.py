@@ -2,8 +2,10 @@
 from numpy import int32
 import prototype_2.value_transformations as VT
 
+#541 
+
 metadata = {
-    'OBSERVATION-from-Encounter': {
+    'OBSERVATION-from-Encounter_participantRole': {
 
         'root': {
             'config_type': 'ROOT',
@@ -11,7 +13,7 @@ metadata = {
             # Encounters sections
             'element': ('./hl7:component/hl7:structuredBody/hl7:component/hl7:section'
                         '/hl7:templateId[ @root="2.16.840.1.113883.10.20.22.2.22" or @root="2.16.840.1.113883.10.20.22.2.22.1" ]/..'
-                        '/hl7:entry/hl7:encounter')  
+                        '/hl7:entry/hl7:encounter/hl7:participant/hl7:participantRole')
         },
  
     	'observation_id_root': {
@@ -150,8 +152,8 @@ metadata = {
         },
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'OBSERVATION-from-Encounter',
-			'order':101
+            'constant_value': 'OBSERVATION-from-Encounter_participantRole',
+			'order': 101
 		} 
     }
 }
