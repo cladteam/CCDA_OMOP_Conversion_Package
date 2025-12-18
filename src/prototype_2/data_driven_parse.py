@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 """ Table-Driven ElementTree parsing in Python
 
@@ -44,13 +43,13 @@
     fields, like the vocabulary and code used to find the concept_id.
     Each field_spec. has multiple attributes driving that field's
     retrieval or derivation.
-    
+
     PK_dict :dict[str, any]
     key is the field_name, any is the value. Value can be a string, int, None or a list of same.
-    
+
     output_dict :dict[str, any]
     omop_dict : dict[str, list[any] for each config you have a list of records
-    
+
 
 
     XML terms used specifically:
@@ -131,6 +130,7 @@ def create_hash_too_long(input_string):
     hash_digest = hash_value.hexdigest()[0:15]
     long_hash_value = int(hash_digest, 31)
     return long_hash_value
+
 
 
 @typechecked
@@ -422,7 +422,7 @@ def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int3
                     logger.info(f"WARNING FK has more than one value {field_tag}, tagging with 'RECONCILE FK'")
                     # original hack:
                     output_dict[field_tag] = -1  #### 'RECONCILE FK'
-                
+
             else:
                 path = root_path + "/"
                 if 'element' in field_details_dict:
@@ -448,6 +448,10 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
                       error_fields_set :set[str]):
     """ Do/compute derived values now that their inputs should be available in the output_dict
         Except for a special argument named 'default', when the value is what is other wise the field to look up in the output dict.
+
+        This set-up is for functions that expect explicit named arguments. This code here adds values for those arguments to the
+        the dictionary passed to the function.
+        It's tempting to want to pass a list of arguments, but that's not how this function works.
     """
     for (field_tag, field_details_dict) in config_dict.items():
         if field_details_dict['config_type'] == 'DERIVED':
@@ -460,21 +464,25 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
                         args_dict[arg_name] = field_name
                 else:
                     logger.info(f"     -- {field_tag}, arg_name:{arg_name} field_name:{field_name}")
-                    if field_name not in output_dict:
-                        error_fields_set.add(field_tag)
-                        logger.error((f"DERIVED config:{config_name} field:{field_tag} could not "
-                                      f"find {field_name} in {output_dict}"))
                     try:
-                        args_dict[arg_name] = output_dict[field_name]
-                    except Exception as e:
-                        #print(traceback.format_exc(e))
-                        error_fields_set.add(field_tag)
-                        logger.error((f"DERIVED {field_tag} arg_name: {arg_name} field_name:{field_name}"
-                                      f" args_dict:{args_dict} output_dict:{output_dict}"))
-                        logger.error(f"DERIVED exception {e}")
+                        if field_name not in output_dict:
+                            error_fields_set.add(field_tag)
+                            logger.error((f"DERIVED config:{config_name} field:{field_tag} could not "
+                                      f"find {field_name} in {output_dict}"))
+                        try:
+                            args_dict[arg_name] = output_dict[field_name]
+                        except Exception as e:
+                            print(f"-------error field_name:{field_name}  arg_name:{arg_name}  {e}")
+                            print(traceback.format_exc(e))
+                            error_fields_set.add(field_tag)
+                            logger.error((f"DERIVED {field_tag} arg_name: {arg_name} field_name:{field_name}"
+                                        f" args_dict:{args_dict} output_dict:{output_dict}"))
+                            logger.error(f"DERIVED exception {e}")
+                    except TypeError as te:
+                        print(f"-------error field_name:{field_name}  arg_name:{arg_name}  {te}")
+                        print(traceback.format_exc(te))
 
             try:
-                function_reference = field_details_dict['FUNCTION']
                 function_value = field_details_dict['FUNCTION'](args_dict)
 #                if function_reference != VT.concat_fields and function_value is None:
 #                    logger.error((f"do_derived_fields(): No mapping back for {config_name} {field_tag}"
@@ -488,12 +496,14 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
             except KeyError as e:
                 #print(traceback.format_exc(e))
                 error_fields_set.add(field_tag)
+                print(f"DERIVED key error on: {e}")
                 logger.error(f"DERIVED key error on: {e}")
                 logger.error(f"DERIVED KeyError {field_tag} function can't find key it expects in {args_dict}")
                 output_dict[field_tag] = None
             except TypeError as e:
                 #print(traceback.format_exc(e))
                 error_fields_set.add(field_tag)
+                print(f"DERIVED type error exception: {e}")
                 logger.error(f"DERIVED type error exception: {e}")
                 logger.error((f"DERIVED TypeError {field_tag} possibly calling something that isn't a function"
                               " or that function was passed a null value." 
@@ -502,11 +512,35 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
                               f"string: {type(field_details_dict['FUNCTION'])}"))
                 output_dict[field_tag] = None
             except Exception as e:
+                print(f"DERIVED exception: {e}")
                 logger.error(f"DERIVED exception: {e}")
                 output_dict[field_tag] = None
-            except: # Error as er:
-#                logger.error(f"DERIVED error: {er}")
-                output_dict[field_tag] = None
+
+
+#def do_derived2_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
+##@typechecked
+def do_derived2_fields(output_dict :dict[str, list | None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
+                      root_element, root_path, config_name,
+                      config_dict :dict[str, dict[str, str | None | list]],
+                      error_fields_set :set[str]):
+    '''
+    This version is for functions that are smart enough to mine the output_dict with keys passed in.
+    It allows for a list of arguments, but requires looking the value up explicitly
+    '''
+
+    
+    for (field_tag, field_details_dict) in config_dict.items():
+        #output_dict[field_tag] = f"XX:\"{field_tag}\   \"{field_details_dict}\" "
+        if field_details_dict['config_type'] == 'DERIVED2':
+            output_dict[field_tag] = None
+            try:
+                function_value = field_details_dict['FUNCTION'](field_details_dict, output_dict)
+                output_dict[field_tag] = function_value
+            except Exception as e:
+                print(f"Error in do_derived2_fields {config_name} {field_tag}")
+                print(traceback.format_exc(e))
+
+
 
                 
 @typechecked
@@ -531,7 +565,11 @@ def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | int
             for field_name in field_details_dict['fields'] :
                 if field_name in output_dict:
                     value_list.append(output_dict[field_name])
+                else:
+                    logger.error("unknown HASH field  {field_name}")
+                    print("unknown HASH field  {field_name}")
             hash_input =  "|".join(map(str, value_list))
+            #hash_value = create_hash_part1(hash_input)
             hash_value = create_hash(hash_input)
             output_dict[field_tag] = hash_value
             # treat as PK and include in that dictionary
@@ -668,6 +706,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
     do_filename_fields(output_dict, root_element, root_path, config_name, config_dict, error_fields_set, filename)
     do_basic_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
     do_derived_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
+    do_derived2_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
     do_foreign_key_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
 
     # NOTE: Order of operations is important here. do_priority_fields() must run BEFORE do_hash_fields().

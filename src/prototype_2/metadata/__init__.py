@@ -1,5 +1,5 @@
 import subprocess
-import pandas as pd
+
 import logging
 import sys
 import os
@@ -52,6 +52,30 @@ def get_branch():
         return None
 
 
+def custom_sort_key(filename):
+    """
+    Returns a tuple for sorting based on a multi-level priority:
+    Location, care_site, provider, person,  from Sep 26 with Chris R discussion in Slack and #474
+    """
+    # Group 0: Highest priority
+    if filename == 'location.py' or filename.startswith("LOCATION"):
+        return (0, filename)
+    # Group 1
+    elif filename.startswith('care_site') or filename.startswith('CARE_SITE'):
+        return (1, filename)
+    # Group 2
+    elif filename.startswith('provider') or filename.startswith('PROVIDER'):
+        return (2, filename)
+    # Group 3
+    elif filename == 'person.py' or filename.startswith('PERSON'):
+        return (3, filename)
+    # Group 4: visit
+    elif filename.startswith('visit') or filename.startswith('VISIT'):
+        return (4, filename)
+    else:
+        return (5, filename)
+
+
 def discover_and_sort_metadata() -> Dict[str, Any]:
     """
     Discovers all metadata files, sorts them with a custom priority,
@@ -61,50 +85,31 @@ def discover_and_sort_metadata() -> Dict[str, Any]:
     if not os.path.isdir(METADATA_DIR):
         logging.error(f"Metadata directory not found at: {METADATA_DIR}")
         return {}
-
-    def custom_sort_key(filename):
-        """
-        Returns a tuple for sorting based on a multi-level priority:
-        Location, care_site, provider, person,  from Sep 26 with Chris R discussion in Slack and #474
-        """
-        # Group 0: Highest priority
-        if filename == 'location.py':
-            return (0, filename)
-        # Group 1
-        elif filename.startswith('care_site'):
-            return (1, filename)
-        # Group 2
-        elif filename.startswith('provider'):
-            return (2, filename)
-        # Group 3
-        elif filename == 'person.py':
-            return (3, filename)
-        # Group 4: visit
-        elif filename.startswith('visit'):
-            return (4, filename)
-        else:
-            return (5, filename)
-    files_to_skip = ['__init__.py', 'test.py', 'ddl.py', 'util.py']
+            
+    files_to_skip = ['__init__.py', 'test.py', 'ddl.py', 'util.py', 
+        'test' # (though a dir, still needs to be skipped, getting an error about test.py?
+    ]
     filenames = os.listdir(METADATA_DIR)
     filenames.sort(key=custom_sort_key)
     for filename in filenames:
-        if filename.endswith('.py') and filename not in files_to_skip:
+        if filename.endswith('.py') and (filename not in files_to_skip):
             module_name = filename[:-3]
             file_path = os.path.join(METADATA_DIR, filename)
             try:
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
                 module = importlib.util.module_from_spec(spec)
                 if spec is None or module is None:
-                    logging.warning(f"Could not load spec for module: {module_name}")
+                    logging.warning(f"Could not load spec for module: {module_name} for file: {file_path}")
                     continue
                 spec.loader.exec_module(module)
                 if hasattr(module, 'metadata'):
                     metadata_dicts.append(module.metadata)
                 else:
-                    logging.warning(f"Module '{module_name}' does not contain a 'metadata' dictionary.")
+                    logging.warning(f"Module '{module_name}' for {file_path} does not contain a 'metadata' dictionary.")
             except Exception as e:
-                logging.error(f"Failed to import metadata from '{filename}': {e}")
+                logging.error(f"metadata/__init__.py discover_and_sort_metadata() Failed to import metadata (not the folder, but imports stuff) from file:'{filename}' in dir: {METADATA_DIR} {file_path} NOT FATAL, skipped!: {e}")
     if not metadata_dicts:
+        logging.error(f"metadata/__init__.py discover_and_sort_metadata()  no metadata_dicts from {METADATA_DIR}")
         return {}
     return reduce(lambda a, b: a | b, metadata_dicts)
 

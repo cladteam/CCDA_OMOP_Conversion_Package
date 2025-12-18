@@ -389,8 +389,58 @@ def extract_year_of_birth(args_dict : dict[str, any]) -> int32:
     return None
 
 
+def concat_field_list_names(args_dict, data_dict):
+    '''
+        A DERIVED2 style function.
+        Looks for a argument with the name of 'args' under the 'argument_list'
+        brought in from the parse configuration. That list is a list of keys
+        whose data we're interested in fetching from the data_dict.
+
+        args_dict: the field's paragraph in the parse configuration
+        data_dict: the dictionary of values being built up for an OMOP row 
+           by the parse configuration where all this comes from.
+
+        Returns: a joined list of the keys. The data_dict is unused.
+    '''
+    args_key = 'argument_list'
+    if not args_dict:
+        return f"no args dict \"{args_dict}\" "
+    if args_key not in args_dict.keys():
+        return f"no  \"{args_key}\" in args dict {args_dict}"
+    if 'key_list' not in args_dict['argument_list'].keys():
+        return f"no  \"key_list\" in args dict {args_dict}"
+
+    return  "|".join(args_dict['argument_list']['key_list'])
+
+
+def concat_field_list_values(args_dict, data_dict):
+    '''
+        A DERIVED2 style function.
+        Looks for a argument with the name of 'args' under the 'argument_list'
+        brought in from the parse configuration. That list is a list of keys
+        whose data we're interested in fetching from the data_dict.
+
+        args_dict: the field's paragraph in the parse configuration
+        data_dict: the dictionary of values being built up for an OMOP row 
+           by the parse configuration where all this comes from.
+
+        Returns: a joined list of the data values associated with those keys.
+    '''
+    if not args_dict:
+        return f"no args dict \"{args_dict}\" "
+    if 'argument_list' not in args_dict.keys():
+        return f"no  argument_list in args dict {args_dict}"
+    if 'key_list' not in args_dict['argument_list'].keys():
+        return f"no  \"key_list\" in args dict {args_dict}"
+
+    return "|".join(map(str, map(lambda x: data_dict[x], args_dict['argument_list']['key_list'] )))
+
+
+
+
 def concat_fields(args_dict):
     """
+      A DERIVED style function.
       input key "delimiter" is a character to use to separate the fields
       following items in dict are the names of keys in the values to concat
       
