@@ -40,12 +40,12 @@ metadata = {
             'order': 2
     	},
 
-    	'procedure_concept_id_code': {
+    	'procedure_concept_code': {
     	    'config_type': 'FIELD',
     	    'element': "hl7:code" ,
     	    'attribute': "code"
     	},
-    	'procedure_concept_id_codeSystem': {
+    	'procedure_concept_codeSystem': {
     	    'config_type': 'FIELD',
     	    'element': "hl7:code",
     	    'attribute': "codeSystem"
@@ -54,22 +54,23 @@ metadata = {
     	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_concept_id,  
     	    'argument_names': {
-    		    'concept_code': 'procedure_concept_id_code',
-    		    'vocabulary_oid': 'procedure_concept_id_codeSystem',
+    		    'concept_code': 'procedure_concept_code',
+    		    'vocabulary_oid': 'procedure_concept_codeSystem',
                 'default': 0
             },
             'order': 3
     	},
 
-    	'procedure_concept_domain_id': {
-    	    'config_type': 'DOMAIN',
+    	
+    	'domain_id': {
+    	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
-    		    'concept_code': 'procedure_concept_id_code',
-    		    'vocabulary_oid': 'procedure_concept_id_codeSystem',
+    		    'concept_code': 'procedure_concept_code',
+    		    'vocabulary_oid': 'procedure_concept_codeSystem',
                 'default': 0
     	    }
-    	},           
+    	},
         
         'procedure_date': {
             'config_type': 'FIELD',
