@@ -720,6 +720,10 @@ def parse_config_for_single_root(root_element, root_path, config_name,
                  f"we have tag:{root_element.tag}"
                  f" attributes:{root_element.attrib}"))
 
+    if 'domain_id' not in output_dict:
+        logger.error(f"'domain_id' mising from output dict when testing expected_domain_id. Check your "
+            "parse configuration \"{config_name}\" for a field called 'domain_id'. If you don't have one, add it."
+            "If you do, check the spelling. Your row will be REJECTED or DENY/DENIED.")        
     domain_id = output_dict.get('domain_id', None) # fetch this before it gets omitted
     output_dict = sort_output_and_omit_dict(output_dict, config_dict, config_name)
     expected_domain_id = config_dict['root']['expected_domain_id']
@@ -727,51 +731,51 @@ def parse_config_for_single_root(root_element, root_path, config_name,
     # Strict: null domain_id is not good, but don't expect a domain id from non-domain tables
     if (expected_domain_id == domain_id
         or expected_domain_id in ['Person', 'Location', 'Care_Site', 'Provider', 'Visit']):
-
+ 
         if expected_domain_id == "Observation":
-            logger.warning((f"ACCEPTING {domain_id} "
-                            f"id:{output_dict['observation_id']} "
-                            f"cpt:{output_dict['observation_concept_id']}" ) )
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['observation_id']} "
+                            f"concept code:{output_dict['observation_concept_id']}" ) )
         elif expected_domain_id == "Measurement":
-            logger.warning((f"ACCEPTING {domain_id} "
-                            f"id:{output_dict['measurement_id']} "
-                            f"cpt:{output_dict['measurement_concept_id']}") )
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['measurement_id']} "
+                            f"concept code:{output_dict['measurement_concept_id']}") )
         elif expected_domain_id == "Procedure":
-            logger.warning((f"ACCEPTING {domain_id} "
-                            f"id:{output_dict['procedure_occurrence_id']} "
-                            f"cpt:{output_dict['procedure_concept_id']}") )
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['procedure_occurrence_id']} "
+                            f"concept code:{output_dict['procedure_concept_id']}") )
         elif expected_domain_id == "Device":
-            logger.warning((f"ACCEPTING {domain_id} "
-                            f"id:{output_dict['device_exposure_id']} "
-                            f"cpt:{output_dict['device_concept_id']}") )
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['device_exposure_id']} "
+                            f"concept code:{output_dict['device_concept_id']}") )
         return output_dict
     else:
         if expected_domain_id == "Observation":
-            logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} "
-                            f"id:{output_dict['observation_id']} "
-                            f"cpt:{output_dict['observation_concept_id']}" ))
+            logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} in config: {config_name} "
+                            f"row id:{output_dict['observation_id']} "
+                            f"concept code:{output_dict['observation_concept_id']}" ))
         elif expected_domain_id == "Measurement":
-            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} "
-                              f"id:{output_dict['measurement_id']} "
-                              f"cpt:{output_dict['measurement_concept_id']}") )
+            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['measurement_id']} "
+                              f"concept code:{output_dict['measurement_concept_id']}") )
         elif expected_domain_id == "Procedure":
-            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} "
-                              f"id:{output_dict['procedure_occurrence_id']} "
-                              f"cpt:{output_dict['procedure_concept_id']}") )
+            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['procedure_occurrence_id']} "
+                              f"concept code:{output_dict['procedure_concept_id']}") )
         elif expected_domain_id == "Drug":
-            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} "
-                              f"id:{output_dict['drug_exposure_id']} "
-                              f"cpt:{output_dict['drug_concept_id']}") )
+            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['drug_exposure_id']} "
+                              f"concept code:{output_dict['drug_concept_id']}") )
         elif expected_domain_id == "Device":
-            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} "
-                              f"id:{output_dict['device_exposure_id']} "
-                              f"cpt:{output_dict['device_concept_id']}") )
+            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['device_exposure_id']} "
+                              f"concept code:{output_dict['device_concept_id']}") )
         elif expected_domain_id == "Condition":
-            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} "
-                              f"id:{output_dict['condition_occurrence_id']} "
-                              f"cpt:{output_dict['condition_concept_id']}") )
+            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['condition_occurrence_id']} "
+                              f"concept code:{output_dict['condition_concept_id']}") )
         else:
-            logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} "))
+            logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} in config: {config_name} "))
         return None
 
 
