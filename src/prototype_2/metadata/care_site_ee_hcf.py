@@ -36,7 +36,11 @@ metadata = {
         },
         'care_site_id': { 
             'config_type': 'HASH',
-            'fields': [ 'care_site_id_root', 'care_site_id_extension'],
+            #'fields': [ 'care_site_id_root', 'care_site_id_extension'],
+            'fields': [ 'care_site_id_root', 'care_site_id_extension',
+                        'care_site_name', 
+                        'place_of_service_concept_code', 'place_of_service_concept_codeSystem',
+                        'address_1', 'city', 'state', 'zip' ],
             'order': 1
         },
 
