@@ -131,7 +131,7 @@ metadata = {
             'FUNCTION': VT.codemap_xwalk_source_concept_id,
             'argument_names': {
                 'concept_code': 'observation_concept_code',
-                'vocabulary_oid': 'observation_concept_system',
+                'vocabulary_oid': 'observation_concept_codeSystem',
                 'default': None
             },
 		    'order': 16
