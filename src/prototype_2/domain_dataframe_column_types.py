@@ -48,6 +48,7 @@ domain_dataframe_column_types = {
     },
     "person": {
         "person_id": int64,
+        "data_partner_id": int32,
         "gender_concept_id": int32,
         "year_of_birth": int32,
         "month_of_birth": int32,
@@ -272,6 +273,7 @@ domain_dataframe_column_required = {
     },
     "person": {
         "person_id": True,
+        "data_partner_id": True,
         "gender_concept_id": True,
         "year_of_birth": True,
         "month_of_birth": False,

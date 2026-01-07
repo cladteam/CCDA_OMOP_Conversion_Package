@@ -346,6 +346,12 @@ metadata = {
             'attribute': "unit",
             'order': 23
         },
+        'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 24
+        },
         
         'filename' : {
             'config_type': 'FILENAME',

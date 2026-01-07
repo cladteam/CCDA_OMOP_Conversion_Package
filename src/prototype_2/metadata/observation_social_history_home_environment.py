@@ -159,6 +159,12 @@ metadata = {
             },
             'order':  21
     	},
+		'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 22
+        },
 		
         'filename' : {
             'config_type': 'FILENAME',

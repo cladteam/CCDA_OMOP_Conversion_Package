@@ -104,7 +104,12 @@ metadata = {
         'procedure_source_value': {'config_type': None,  'order': 12},
         'procedure_source_concept_id': {'config_type': None,  'order': 13},
         'modifier_source_value': {'config_type': None, 'order': 14},
-        
+        'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 20
+        },
         'filename' : {
             'config_type': 'FILENAME',
             'order':100

@@ -282,7 +282,7 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
 
 
 @typechecked
-def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, visit_map_dict, valueset_map_dict) -> dict[str, list[dict]]:
+def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, visit_map_dict, valueset_map_dict, mspi_map_dict, partner_map_dict ) -> dict[str, list[dict]]:
     """
         Processes an XML CCDA string, returns data as Python structures.
 
@@ -294,6 +294,11 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
     VT.set_codemap_dict(codemap_dict)
     VT.set_valueset_dict(valueset_map_dict)
     VT.set_visitmap_dict(visit_map_dict)
+
+    if mspi_map_dict:
+        VT.set_mspi_map(mspi_map_dict)
+    if partner_map_dict:
+        VT.set_partner_map(partner_map_dict)
 
     if len(VT.get_codemap_dict()) < 1:
         raise Exception(f"codemap length {len(VT.get_codemap_dict())}")
@@ -506,36 +511,38 @@ def process_dataset_of_strings(dataset_name, export_datasets, write_csv_flag):
     ccda_ds = Dataset.get(dataset_name)
     ccda_df = ccda_ds.read_table(format='pandas')
     # columns: 'timestamp', 'mspi', 'site', 'status_code', 'response_text',
-    # FOR EACH ROW
-    if True:
-        text=ccda_df.iloc[0,4]
+    # FOR EACH ROW 
+    # Iterating through ALL rows, not just the first one
+    for index, row in ccda_df.iterrows():
+        # Using columns from the dataframe to preserve identity
+        text = row['response_text'] 
+        original_filename = row.get('response_file_path', f"generated_{index}.xml")
+        
         doc_regex = re.compile(r'(<ClinicalDocument.*?</ClinicalDocument>)', re.DOTALL)
         # (don't close the opening tag because it has attributes)
         # works: doc_regex = re.compile(r'(<section>.*?</section>)', re.DOTALL)
         
         # FOR EACH "DOC" in this row (hopefully just 1)
-        i=0
         for match in doc_regex.finditer(text):
             match_tuple = match.groups(0)
-            with tempfile.NamedTemporaryFile() as temp:
-                file_path = temp.name
+            
+            # We use a directory + the original filename 
+            # This ensures VT.map_filename_to_mspi finds the key in the map!
+            with tempfile.TemporaryDirectory() as temp_dir:
+                file_path = os.path.join(temp_dir, os.path.basename(original_filename))
+                
                 with open(file_path, 'w') as f:
                     f.write(match_tuple[0]) # .encode())
-                    f.seek(0)
-                    
-                    new_data_dict = process_file(file_path, write_csv_flag)
-                    
-                    for key in new_data_dict:
-                        if key in omop_dataset_dict and omop_dataset_dict[key] is not None:
-                            if new_data_dict[key] is  not None:
-                                omop_dataset_dict[key] = pd.concat([ omop_dataset_dict[key], new_data_dict[key] ])
-                        else:
-                            omop_dataset_dict[key]= new_data_dict[key]
-                        if new_data_dict[key] is not None:
-                            logger.info((f"{file_path} {key} {len(omop_dataset_dict)} "
-                                          "{omop_dataset_dict[key].shape} {new_data_dict[key].shape}"))
-                        else:
-                            logger.info(f"{file_path} {key} {len(omop_dataset_dict)} None / no data")
+                
+                new_data_dict = process_file(file_path, write_csv_flag)
+                
+                if new_data_dict:
+                    for key, df in new_data_dict.items():
+                        if df is not None:
+                            if key in omop_dataset_dict and omop_dataset_dict[key] is not None:
+                                omop_dataset_dict[key] = pd.concat([omop_dataset_dict[key], df], ignore_index=True)
+                            else:
+                                omop_dataset_dict[key] = df
             
     domain_dataset_dict = combine_datasets(omop_dataset_dict)
     if write_csv_flag:
@@ -613,6 +620,15 @@ def main():
         codemap_dict = U.create_codemap_dict(codemap_df)
         logger.error(f"CODEMAP  {len(codemap_dict)}")
         VT.set_codemap_dict(codemap_dict)
+
+        metadata_df = Dataset.get("ccda_response_metadata").read_table(format="pandas")
+        # Create a dictionary: { 'filename.xml': mspi_value }
+        # We use 'response_file_path' as the key to match the 'filename' in the OMOP output
+        mspi_map = dict(zip(metadata_df['response_file_path'], metadata_df['mspi']))
+        partner_map = dict(zip(metadata_df['response_file_path'], metadata_df['healthcare_site']))
+        VT.set_mspi_map(mspi_map)
+        VT.set_partner_map(partner_map)
+        logger.info(f"MSPI Map initialized with {len(mspi_map)} entries.")
 
         
         

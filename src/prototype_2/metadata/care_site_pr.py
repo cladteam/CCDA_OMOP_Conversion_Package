@@ -119,6 +119,12 @@ metadata = {
         },
         #'county': {
         #'location_source_value': { TODO: concatentation of fields f"{address_1}|{address_2}|{city} "
+        'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 20
+        },
 
         'filename' : {
             'config_type': 'FILENAME',

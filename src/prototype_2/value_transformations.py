@@ -461,4 +461,67 @@ def concat_fields(args_dict):
         values_to_concat = [ args_dict['first_field'], args_dict['second_field'] ]
         return delimiter.join(values_to_concat)
     
+####################################################################################################
 
+partner_map = None
+mspi_lookup_map = None 
+
+def set_partner_map(m):
+    """Initializes the partner map on the executor."""
+    global partner_map
+    partner_map = m
+
+def get_partner_map():
+    return partner_map
+
+def get_data_partner_id(args_dict):
+    """
+    DERIVED function: Returns Data Partner ID for a given filename.
+    Expects 'filename' and 'default' in args_dict.
+    """
+    fname = args_dict.get('filename')
+    default = args_dict.get('default', 0)
+    
+    mapping = get_partner_map()
+    
+    if mapping and fname in mapping:
+        try:
+            partner_id = mapping[fname]
+            if partner_id is not None:
+                return int32(partner_id)
+        except (ValueError, TypeError) as e:
+            logger.error(f"get_data_partner_id: Conversion error for {fname}: {e}")
+            return int32(default)
+            
+    return int32(default)
+
+def set_mspi_map(m):
+    """Initializes the MSPI (person_id) map on the executor."""
+    global mspi_lookup_map
+    mspi_lookup_map = m
+
+def get_mspi_map():
+    return mspi_lookup_map
+
+def map_filename_to_mspi(args_dict):
+    """
+    DERIVED function: Returns MSPI for a given filename to be used as person_id.
+    Expects 'filename' and 'default' in args_dict.
+    """
+    fname = args_dict.get('filename')
+    default = args_dict.get('default')
+    
+    mapping = get_mspi_map()
+    
+    if mapping and fname in mapping:
+        try:
+            
+            mspi_value = mapping[fname]
+            if mspi_value is not None:
+                return int(str(mspi_value))
+        except (ValueError, TypeError) as e:
+            logger.error(f"map_filename_to_mspi: Conversion error for {fname}: {e}")
+            return default
+    
+    logger.warning(f"map_filename_to_mspi: filename {fname} not found in metadata map. Returning default.")
+    return default

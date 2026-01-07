@@ -22,15 +22,31 @@ metadata = {
     	    'attribute': "extension",
     	},
 
-    	'person_id': { 
-       	    'config_type': 'HASH',
-            'fields' : [ 'person_id_root', 'person_id_extension', 
-			             'gender_concept_code', 'gender_concept_codeSystem',
-			             'race_concept_code', 'race_concept_codeSystem',
-			             'gender_concept_code', '_concept_codeSystem',
-						 'ethnicity_concept_code', 'ethnicity_concept_codeSystem',
-						 'birth_datetime', 'address_1', 'city', 'state', 'zip'],
-            'order' : 1
+    	# 'person_id': { 
+       	#     'config_type': 'HASH',
+        #     'fields' : [ 'person_id_root', 'person_id_extension', 
+		# 	             'gender_concept_code', 'gender_concept_codeSystem',
+		# 	             'race_concept_code', 'race_concept_codeSystem',
+		# 	             'gender_concept_code', '_concept_codeSystem',
+		# 				 'ethnicity_concept_code', 'ethnicity_concept_codeSystem',
+		# 				 'birth_datetime', 'address_1', 'city', 'state', 'zip'],
+        #     'order' : 1
+        # },
+        'person_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.map_filename_to_mspi,
+            'argument_names': {
+                'filename': 'filename',
+                'default': 'person_source_value'
+            },
+            'order': 1
+        },
+        
+        'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 20
         },
 
         # Step 1: Define parsers and a derived lookup for the 'direct' path

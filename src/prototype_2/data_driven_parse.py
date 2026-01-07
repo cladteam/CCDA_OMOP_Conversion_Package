@@ -413,7 +413,7 @@ def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int3
         
         if type_tag == 'FK':
             logger.info(f"     FK for {config_name}/{field_tag}")
-            if field_tag in pk_dict and  len(pk_dict[field_tag]) > 0:
+            if field_tag in pk_dict:
                 if len(pk_dict[field_tag]) == 1:
                     output_dict[field_tag] = pk_dict[field_tag][0]
                 else:
@@ -445,13 +445,16 @@ def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int3
 def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                       root_element, root_path, config_name,
                       config_dict :dict[str, dict[str, str | None]],
-                      error_fields_set :set[str]):
+                      error_fields_set :set[str],
+                      pk_dict :dict[str, list[any]]):
     """ Do/compute derived values now that their inputs should be available in the output_dict
         Except for a special argument named 'default', when the value is what is other wise the field to look up in the output dict.
 
         This set-up is for functions that expect explicit named arguments. This code here adds values for those arguments to the
         the dictionary passed to the function.
         It's tempting to want to pass a list of arguments, but that's not how this function works.
+
+        Also a PK
     """
     for (field_tag, field_details_dict) in config_dict.items():
         if field_details_dict['config_type'] == 'DERIVED':
@@ -484,15 +487,14 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
 
             try:
                 function_value = field_details_dict['FUNCTION'](args_dict)
-#                if function_reference != VT.concat_fields and function_value is None:
-#                    logger.error((f"do_derived_fields(): No mapping back for {config_name} {field_tag}"
- #                                 f" from {field_details_dict['FUNCTION']}  {args_dict}   {config_dict[field_tag]}  "
-#                                  "If this is from a value_as_concept/code field, it may not be an error, but "
- #                                 "an artificat of data that doesn't have a value or one that is not "
-#                                  "meant as a concept id"))
                 output_dict[field_tag] = function_value
                 logger.info((f"     DERIVED {function_value} for "
                                 f"{field_tag}, {field_details_dict} {output_dict[field_tag]}"))
+                # Treat derived fields (like person_id) as Primary Keys (PKs)
+                # and stash the value so that FK fields in subsequent domains can find it.
+                if function_value is not None:
+                    if function_value not in pk_dict[field_tag]:
+                        pk_dict[field_tag].append(function_value)
             except KeyError as e:
                 #print(traceback.format_exc(e))
                 error_fields_set.add(field_tag)
@@ -517,8 +519,7 @@ def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | 
                 output_dict[field_tag] = None
 
 
-#def do_derived2_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
-##@typechecked
+@typechecked
 def do_derived2_fields(output_dict :dict[str, list | None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
                       root_element, root_path, config_name,
                       config_dict :dict[str, dict[str, str | None | list]],
@@ -528,7 +529,7 @@ def do_derived2_fields(output_dict :dict[str, list | None | str | float | int | 
     It allows for a list of arguments, but requires looking the value up explicitly
     '''
 
-    
+
     for (field_tag, field_details_dict) in config_dict.items():
         #output_dict[field_tag] = f"XX:\"{field_tag}\   \"{field_details_dict}\" "
         if field_details_dict['config_type'] == 'DERIVED2':
@@ -705,7 +706,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
     do_constant_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
     do_filename_fields(output_dict, root_element, root_path, config_name, config_dict, error_fields_set, filename)
     do_basic_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
-    do_derived_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
+    do_derived_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
     do_derived2_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
     do_foreign_key_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
 
@@ -721,7 +722,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
                  f" attributes:{root_element.attrib}"))
 
     if 'domain_id' not in output_dict:
-        logger.error(f"'domain_id' mising from output dict when testing expected_domain_id. Check your "
+        logger.error("'domain_id' mising from output dict when testing expected_domain_id. Check your "
             "parse configuration \"{config_name}\" for a field called 'domain_id'. If you don't have one, add it."
             "If you do, check the spelling. Your row will be REJECTED or DENY/DENIED.")        
     domain_id = output_dict.get('domain_id', None) # fetch this before it gets omitted
@@ -1825,7 +1826,7 @@ def parse_doc(file_path,
           each a list of record/row dictionaries.
     """
     omop_dict = {}
-    pk_dict = defaultdict(list)
+    pk_dict = defaultdict(list) 
     tree = ET.parse(file_path)
     base_name = os.path.basename(file_path)
     for config_name, config_dict in metadata.items():

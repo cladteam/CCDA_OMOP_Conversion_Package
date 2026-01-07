@@ -201,6 +201,12 @@ metadata = {
             'constant_value' : '',
             'order': 18 
         },
+		'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 20
+        },
 		
         'filename' : {
 		    'config_type': 'FILENAME',
