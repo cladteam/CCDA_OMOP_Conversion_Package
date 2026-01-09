@@ -355,7 +355,10 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | in
             try:
                 attribute_value = parse_field_from_dict(field_details_dict, root_element,
                                                     config_name, field_tag, root_path)
-                output_dict[field_tag] = attribute_value
+                if attribute_value is str:
+                    output_dict[field_tag] = attribute_value.strip()
+                else:
+                    output_dict[field_tag] = attribute_value
                 logger.info(f"     FIELD for {config_name}/{field_tag} \"{attribute_value}\"")
             except KeyError as ke:
                 logger.error(f"key erorr: {ke}")
@@ -369,7 +372,10 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | in
             logger.info(f"     PK for {config_name}/{field_tag}")
             attribute_value = parse_field_from_dict(field_details_dict, root_element,
                                                     config_name, field_tag, root_path)
-            output_dict[field_tag] = attribute_value
+            if attribute_value is str:
+                output_dict[field_tag] = attribute_value.strip()
+            else:
+                output_dict[field_tag] = attribute_value
             pk_dict[field_tag].append(attribute_value)
             logger.info("PK {config_name}/{field_tag} {type(attribute_value)} {attribute_value}")
             
