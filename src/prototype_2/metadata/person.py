@@ -37,7 +37,7 @@ metadata = {
             'FUNCTION': VT.map_filename_to_mspi,
             'argument_names': {
                 'filename': 'filename',
-                'default': 'person_source_value'
+                'default': 'person_source_value' 
             },
             'order': 1
         },
@@ -60,6 +60,7 @@ metadata = {
             'element': 'hl7:patient/hl7:administrativeGenderCode[not(@nullFlavor="OTH")]', 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'gender_concept_id_direct': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -79,6 +80,7 @@ metadata = {
             'element': "hl7:patient/hl7:administrativeGenderCode/hl7:translation", 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'gender_concept_id_translated': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -89,17 +91,18 @@ metadata = {
         },
         # Step 3: Define the final field that coalesces the results from the prioritized derived fields
         'gender_concept_id': { 
-            'config_type': 'PRIORITY', 
+            'config_type': 'PRIORITY',
+            'default': 0, 
             'order': 2 
         },
 
 
         'year_of_birth': {
             'config_type': 'DERIVED',
-    	    'FUNCTION': VT.extract_year_of_birth,
-    	    'argument_names': {
-    		    'date_object': 'birth_datetime',
-    	    },
+            'FUNCTION': VT.extract_year_of_birth,
+            'argument_names': {
+                'date_object': 'birth_datetime',
+            },
             'order': 3
         },
         'month_of_birth': {
@@ -136,6 +139,7 @@ metadata = {
             'element': 'hl7:patient/hl7:raceCode[not(@nullFlavor="OTH")]', 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'race_concept_id_direct': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -155,6 +159,7 @@ metadata = {
             'element': "hl7:patient/sdtc:raceCode", 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'race_concept_id_sdtc': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -174,6 +179,7 @@ metadata = {
             'element': "hl7:patient/hl7:raceCode/hl7:translation", 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'race_concept_id_translated': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -185,6 +191,7 @@ metadata = {
         # Step 4: Define the final field that coalesces the results from the prioritized derived fields
         'race_concept_id':{ 
             'config_type': 'PRIORITY', 
+            'default': 0, 
             'order': 7 
         },
 
@@ -199,6 +206,7 @@ metadata = {
             'element': 'hl7:patient/hl7:ethnicGroupCode[not(@nullFlavor="OTH")]', 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'ethnicity_concept_id_direct': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -218,6 +226,7 @@ metadata = {
             'element': "hl7:patient/sdtc:ethnicGroupCode", 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'ethnicity_concept_id_sdtc': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -237,6 +246,7 @@ metadata = {
             'element': "hl7:patient/hl7:ethnicGroupCode/hl7:translation", 
             'attribute': "codeSystem" 
         },
+        # must default to None for priority/coalesce mechanism to work
         'ethnicity_concept_id_translated': {
             'config_type': 'DERIVED', 
             'FUNCTION': VT.valueset_xwalk_concept_id,
@@ -248,6 +258,7 @@ metadata = {
         # Step 4: Define the final field that coalesces the results from the prioritized derived fields
         'ethnicity_concept_id': { 
             'config_type': 'PRIORITY', 
+            'default': 0, 
             'order': 8 
         },
         
@@ -276,16 +287,19 @@ metadata = {
             'fields' : [ 'address_1', 'city', 'state', 'zip'  ],
             'order': 9
         },
-        'provider_id': { 'config_type': None, 'order': 10 },
+        'provider_id': { # TODO FK to document-level provider?
+            'config_type': None,
+	        'order': 10
+        },
         'care_site_id': { 
             'config_type': 'CONSTANT',
-            'constant_value' : int64(0),
-	    'order':11
+            'constant_value': int64(0),
+	    'order': 11
         },
         'person_source_value': { 
             'config_type': 'CONSTANT',
-            'constant_value' : '',
-	    'order':12
+            'constant_value' : '', # None?
+	        'order':12
         },
         
         'gender_source_value_direct': { 
@@ -304,7 +318,11 @@ metadata = {
        	    'config_type': 'PRIORITY',
             'order': 13 
          },
-        'gender_source_concept_id': { 'config_type': None, 'order': 14 },
+        'gender_source_concept_id': {
+			'config_type': 'CONSTANT', 
+            'constant_value': 0,
+            'order': 14 
+        },
         
         'race_source_value_direct': { 
             'config_type': 'FIELD', 
@@ -328,7 +346,11 @@ metadata = {
       	    'config_type': 'PRIORITY',
             'order': 15
         },
-        'race_source_concept_id': { 'config_type': None, 'order': 16 },
+        'race_source_concept_id': {
+			'config_type': 'CONSTANT', 
+            'constant_value': 0,
+            'order': 16 
+        },
 
         'ethnicity_source_value_direct': { 
             'config_type': 'FIELD', 
@@ -352,7 +374,11 @@ metadata = {
        	    'config_type': 'PRIORITY',
             'order': 17
         },
-        'ethnicity_source_concept_id': { 'config_type': None, 'order': 18 },
+        'ethnicity_source_concept_id': {
+			'config_type': 'CONSTANT', 
+            'constant_value': 0,
+            'order': 18 
+        },
 
         'filename' : {
 		    'config_type': 'FILENAME',

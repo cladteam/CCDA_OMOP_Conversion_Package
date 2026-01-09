@@ -442,11 +442,11 @@ def do_foreign_key_fields(output_dict :dict[str, None | str | float | int | int3
                 error_fields_set.add(field_tag)
 
 @typechecked
-def do_derived_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
+def do_derived_fields(output_dict: dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date],
                       root_element, root_path, config_name,
-                      config_dict :dict[str, dict[str, str | None]],
-                      error_fields_set :set[str],
-                      pk_dict :dict[str, list[any]]):
+                      config_dict: dict[str, dict[str, str | None]],
+                      error_fields_set: set[str],
+                      pk_dict: dict[str, list[any]]):
     """ Do/compute derived values now that their inputs should be available in the output_dict
         Except for a special argument named 'default', when the value is what is other wise the field to look up in the output dict.
 
@@ -545,11 +545,11 @@ def do_derived2_fields(output_dict :dict[str, list | None | str | float | int | 
 
                 
 @typechecked
-def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date], 
-                   root_element, root_path, config_name,  
-                   config_dict :dict[str, dict[str, str | None]], 
-                   error_fields_set :set[str], 
-                   pk_dict :dict[str, list[any]]):
+def do_hash_fields(output_dict: dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date],
+                   root_element, root_path, config_name,
+                   config_dict: dict[str, dict[str, str | None]],
+                   error_fields_set: set[str],
+                   pk_dict: dict[str, list[any]]):
     """ These are basically derived, but the argument is a lsit of field names, instead of
         a fixed number of individually named fields.
         Dubiously useful in an environment where IDs are  32 bit integers.
@@ -580,12 +580,16 @@ def do_hash_fields(output_dict :dict[str, None | str | float | int | int32 | int
 
             
 @typechecked
-def do_priority_fields(output_dict :dict[str, None | str | float | int | int32 | int64 |  datetime.datetime | datetime.date], 
-                       root_element, root_path, config,  
-                       config_dict :dict[str, dict[str, str | None]], 
-                       error_fields_set :set[str], 
-                       pk_dict :dict[str, list[any]]) -> dict[str, list]:
+def do_priority_fields(output_dict: dict[str, None | str | float | int | int32 | int64 | datetime.datetime | datetime.date],
+                       root_element, root_path, config_name,
+                       config_dict: dict[str, dict[str, str | None]],
+                       error_fields_set: set[str],
+                       pk_dict: dict[str, list[any]]) -> dict[str, list]:
     """
+        ARGS expected in config: 
+       	    'config_type': 'PRIORITY',
+            'defult': 0, in case there is no non-null value in the priority change and we don't want a null value in the end.
+            'order': 17
         Returns the list of  priority_names so the chosen one (first non-null) can be 
         added to output fields Also, adds this field to the PK list?
         This is basically what SQL calls a coalesce.
@@ -609,7 +613,7 @@ def do_priority_fields(output_dict :dict[str, None | str | float | int | int32 |
     # Ex. [('person_id_other', 2), ('person_id_ssn', 1)]
     priority_fields = {}
     for field_key, config_parts in config_dict.items():
-        if  'priority' in config_parts:
+        if 'priority' in config_parts:
             new_field_name = config_parts['priority'][0]
             if new_field_name in priority_fields:
                 priority_fields[new_field_name].append( (field_key, config_parts['priority'][1]))
@@ -632,8 +636,12 @@ def do_priority_fields(output_dict :dict[str, None | str | float | int | int32 |
 
         if not found:
             # relent and put a None if we didn't find anything
-            output_dict[priority_name] = None
-            pk_dict[priority_name].append(None)
+            # unless we have a default value
+            default_value = None
+            if 'default' in config_dict:
+                default_value = config_dict['default']
+            output_dict[priority_name] = default_value
+            pk_dict[priority_name].append(default_value)
 
     return priority_fields
     
