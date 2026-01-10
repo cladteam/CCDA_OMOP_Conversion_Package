@@ -25,6 +25,7 @@ from foundry.transforms import Dataset
 import datetime as DT
 
 import prototype_2.data_driven_parse as DDP
+import prototype_2.visit_reconcilliation as VR
 import prototype_2.value_transformations as VT
 import prototype_2.util as U
 from prototype_2.ddl import sql_import_dict
@@ -263,12 +264,12 @@ def process_string(contents, filepath, write_csv_flag) -> dict[str, pd.DataFrame
     logger.info(f"--parsing string from file:{filepath} keys:{omop_data.keys()} p:{len(omop_data['Person'])} m:{len(omop_data['Measurement'])} ")
 
     # Visit FK reconciliation:
-    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+    VR.assign_visit_occurrence_ids_to_events(omop_data)
 
     if DO_VISIT_DETAIL:
         if 'VISITDETAIL_visit_occurrence' in omop_data and omop_data['VISITDETAIL_visit_occurrence']:
             logger.info("Starting visit_detail FK reconciliation")
-            DDP.assign_visit_detail_ids_to_events(omop_data)
+            VR.assign_visit_detail_ids_to_events(omop_data)
 
     logger.info(f"-- after reconcile parsing string from file:{filepath} keys:{omop_data.keys()} p:{len(omop_data['Person'])} m:{len(omop_data['Measurement'])} ")
     if omop_data is not None or len(omop_data) < 1:
@@ -325,12 +326,12 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
     omop_data = DDP.parse_string(contents, filepath, get_meta_dict())
 
     # Visit FK reconciliation:
-    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+    VR.assign_visit_occurrence_ids_to_events(omop_data)
 
     if DO_VISIT_DETAIL:
         if 'VISITDETAIL_visit_occurrence' in omop_data and omop_data['VISITDETAIL_visit_occurrence']:
             logger.info("Starting visit_detail FK reconciliation")
-            DDP.assign_visit_detail_ids_to_events(omop_data)
+            VR.assign_visit_detail_ids_to_events(omop_data)
 
     return omop_data
 
@@ -345,12 +346,12 @@ def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
     omop_data = DDP.parse_doc(filepath, get_meta_dict())
 
     # Visit FK reconciliation:
-    DDP.assign_visit_occurrence_ids_to_events(omop_data)
+    VR.assign_visit_occurrence_ids_to_events(omop_data)
 
     if DO_VISIT_DETAIL:
         if 'VISITDETAIL_visit_occurrence' in omop_data and omop_data['VISITDETAIL_visit_occurrence']:
             logger.info("Starting visit_detail FK reconciliation")
-            DDP.assign_visit_detail_ids_to_events(omop_data)
+            VR.assign_visit_detail_ids_to_events(omop_data)
 
     # Convert from list of dictionaries/records to dataframes/datasets
     if omop_data is not None or len(omop_data) < 1:
