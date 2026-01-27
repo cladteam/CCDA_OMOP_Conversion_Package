@@ -513,24 +513,17 @@ def get_partner_map():
 
 def get_data_partner_id(args_dict):
     """
-    DERIVED function: Returns Data Partner ID for a given filename.
-    Expects 'filename' and 'default' in args_dict.
+    Returns Data Partner ID. Defaults to 0 if filename is not in map.
+    Strictly returns an integer per the component contract.
     """
     fname = args_dict.get('filename')
-    default = args_dict.get('default', 0)
-    
-    mapping = get_partner_map()
-    
-    if mapping and fname in mapping:
-        try:
-            partner_id = mapping[fname]
-            if partner_id is not None:
-                return int32(partner_id)
-        except (ValueError, TypeError) as e:
-            logger.error(f"get_data_partner_id: Conversion error for {fname}: {e}")
+    mapping = get_partner_map() 
+    if mapping is None:
+        raise ValueError("Data partner id map is missing")
+    # We don't catch errors here; if mapping[fname] is garbage, 
+    # int32() will raise an error 'loudly' as requested.
+    return int32(mapping.get(fname, 0))
 
-    logger.warning(f"get_data_partner_id: filename \"{fname}\" not found. Falling back to default: \"{default}\"")        
-    return int32(default)
 
 def set_mspi_map(m):
     """Initializes the MSPI (person_id) map on the executor."""
@@ -542,23 +535,13 @@ def get_mspi_map():
 
 def map_filename_to_mspi(args_dict):
     """
-    DERIVED function: Returns MSPI for a given filename to be used as person_id.
-    Expects 'filename' and 'default' in args_dict.
+    Returns MSPI (person_id). Defaults to 0 if filename is not in map.
+    Raises if the MSPI map has not been initialized.
     """
     fname = args_dict.get('filename')
-    default = args_dict.get('default')
-    
-    mapping = get_mspi_map()
-    
-    if mapping and fname in mapping:
-        try:
-            
-            mspi_value = mapping[fname]
-            if mspi_value is not None:
-                return int(str(mspi_value))
-        except (ValueError, TypeError) as e:
-            logger.error(f"map_filename_to_mspi: Conversion error for {fname}: {e}")
-    return_val = default if default is not None else 0
-    
-    logger.warning(f"map_filename_to_mspi: filename \"{fname}\" not found in metadata map. Returning default: \"{return_val}\"")
-    return return_val
+    mapping = get_mspi_map() 
+    if mapping is None:
+        raise ValueError("MSPI map is missing")
+    # If filename is missing, returns 0. 
+    # If value exists but isn't an integer, int() will raise a ValueError.
+    return int(mapping.get(fname, 0))

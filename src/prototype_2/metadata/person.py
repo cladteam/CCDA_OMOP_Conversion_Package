@@ -37,7 +37,7 @@ metadata = {
             'FUNCTION': VT.map_filename_to_mspi,
             'argument_names': {
                 'filename': 'filename',
-                'default': 'person_source_value' 
+                # 'default': 'person_source_value' 
             },
             'order': 1
         },
