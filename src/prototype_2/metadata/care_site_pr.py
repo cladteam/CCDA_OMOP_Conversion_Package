@@ -75,12 +75,20 @@ metadata = {
             'order': 4
         },
         'care_site_source_value': {
-            'config_type': 'DERIVED',
-            'FUNCTION': VT.concat_fields,
-            'argument_names':{
-                'first_field': 'care_site_id_root',
-                'second_field': 'care_site_id_extension',
-                'default' : 'error'
+            'config_type': 'DERIVED2',
+            'FUNCTION': VT.concat_field_list_values,
+            'argument_list': {
+                'key_list': [
+                    'care_site_id_root',
+                    'care_site_id_extension',
+                    'care_site_name',
+                    'place_of_service_concept_code',      
+                    'place_of_service_concept_codeSystem',
+                    'address_1',
+                    'city',
+                    'state',
+                    'zip'
+                ]
             },
             'order': 5
         },
