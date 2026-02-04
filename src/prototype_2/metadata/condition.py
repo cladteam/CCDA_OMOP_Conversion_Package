@@ -188,6 +188,7 @@ metadata = {
         'stop_reason': { 
             'config_type': 'CONSTANT',
             'constant_value' : '', 
+            'length': 20,
             'order': 10
         },
         'provider_id': { 

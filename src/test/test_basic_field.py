@@ -246,5 +246,100 @@ def test_quant_field():
         assert False
         raise e
         
+def test_string_truncation_default():
+    ns = {'hl7': 'urn:hl7-org:v3'}
+    # 60 characters total
+    long_string = "A" * 60 
+    XML_text=f"""
+        <grouping_element>
+            <simple_element>
+                <value value="{long_string}" />
+            </simple_element>
+        </grouping_element>
+    """
+    output_dict = {}
+    config_dict = {
+        'text_field': { 
+            'config_type': 'FIELD',
+            'element': 'value',
+            'attribute': 'value',
+            'order': 1
+        },
+    }
+    
+    tree = ET.fromstring(XML_text)
+    root_element = tree.xpath("./simple_element", namespaces=ns)[0]
+    
+    # DDP.do_basic_fields should now truncate this to 50 by default
+    DDP.do_basic_fields(output_dict, root_element, "./simple_element", "TEST", config_dict, set(), {})
+    
+    assert len(output_dict['text_field']) == 50
+    assert output_dict['text_field'] == "A" * 50
 
+def test_string_truncation_explicit():
+    ns = {'hl7': 'urn:hl7-org:v3'}
+    # 40 characters total
+    long_string = "B" * 40 
+    XML_text=f"""
+        <grouping_element>
+            <stop_reason_element>
+                <value value="{long_string}" />
+            </stop_reason_element>
+        </grouping_element>
+    """
+    output_dict = {}
+    config_dict = {
+        'stop_reason': { 
+            'config_type': 'FIELD',
+            'element': 'value',
+            'attribute': 'value',
+            'length': 20, # Explicit override for stop_reason
+            'order': 1
+        },
+    }
+    
+    tree = ET.fromstring(XML_text)
+    root_element = tree.xpath("./stop_reason_element", namespaces=ns)[0]
+    
+    DDP.do_basic_fields(output_dict, root_element, "./stop_reason_element", "TEST", config_dict, set(), {})
+    
+    assert len(output_dict['stop_reason']) == 20
+    assert output_dict['stop_reason'] == "B" * 20
+
+def test_constant_truncation():
+    # 60 character constant, target length 20 (e.g., stop_reason)
+    long_const = "C" * 60
+    config_dict = {
+        'stop_reason': { 
+            'config_type': 'CONSTANT',
+            'constant_value': long_const,
+            'length': 20,
+            'order': 1
+        },
+    }
+    output_dict = {}
+    DDP.do_constant_fields(output_dict, None, "", "TEST", config_dict, set())
+    
+    assert len(output_dict['stop_reason']) == 20
+    assert output_dict['stop_reason'] == "C" * 20
+
+def test_derived_truncation():
+    config_dict = {
+        'value_as_string': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.concat_fields,
+            'argument_names': {
+                'first_field': 'f1',
+                'second_field': 'f2'
+            },
+            'length': 10,
+            'order': 8 
+        },
+    }
+    output_dict = {'f1': 'PART_ONE_', 'f2': 'PART_TWO_'} 
+    pk_dict = {'value_as_string': []}
+    
+    DDP.do_derived_fields(output_dict, None, "", "TEST", config_dict, set(), pk_dict)
+    
+    assert output_dict['value_as_string'] == "PART_ONE_|"
  

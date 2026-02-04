@@ -13,7 +13,6 @@
  Chris Roeder
 
     Call Graph:
-    - main
       - process_file
         - parse_doc
           -  parse_configuration_from_file
@@ -323,9 +322,13 @@ def do_constant_fields(output_dict :dict[str, None | str | float | int | int32 |
         logger.info((f"     CONSTANT FIELD config:'{config_name}' field_tag:'{field_tag}'"
                      f" {field_details_dict}"))
         config_type_tag = field_details_dict['config_type']
+        allowed_length = field_details_dict.get('length', 50)
         if config_type_tag == 'CONSTANT':
             constant_value = field_details_dict['constant_value']
-            output_dict[field_tag] = constant_value
+            if isinstance(constant_value, str):
+                output_dict[field_tag] = constant_value.strip()[:allowed_length]
+            else:
+                output_dict[field_tag] = constant_value
 
             
 @typechecked
@@ -352,12 +355,13 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | in
         logger.info((f"     FIELD config:'{config_name}' field_tag:'{field_tag}'"
                      f" {field_details_dict}"))
         type_tag = field_details_dict['config_type']
+        allowed_length = field_details_dict.get('length', 50)
         if type_tag == 'FIELD':
             try:
                 attribute_value = parse_field_from_dict(field_details_dict, root_element,
                                                     config_name, field_tag, root_path)
                 if isinstance(attribute_value, str):
-                    output_dict[field_tag] = attribute_value.strip()
+                    output_dict[field_tag] = attribute_value.strip()[:allowed_length]
                 else:
                     output_dict[field_tag] = attribute_value
                 logger.info(f"     FIELD for {config_name}/{field_tag} \"{attribute_value}\"")
@@ -374,7 +378,7 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | in
             attribute_value = parse_field_from_dict(field_details_dict, root_element,
                                                     config_name, field_tag, root_path)
             if isinstance(attribute_value, str):
-                output_dict[field_tag] = attribute_value.strip()
+                output_dict[field_tag] = attribute_value.strip()[:allowed_length]
             else:
                 output_dict[field_tag] = attribute_value
             pk_dict[field_tag].append(attribute_value)
@@ -491,17 +495,22 @@ def do_derived_fields(output_dict: dict[str, None | str | float | int | int32 | 
                     except TypeError as te:
                         print(f"-------error field_name:{field_name}  arg_name:{arg_name}  {te}")
                         print(traceback.format_exc(te))
-
+            allowed_length = field_details_dict.get('length', 50)
             try:
                 function_value = field_details_dict['FUNCTION'](args_dict)
-                output_dict[field_tag] = function_value
-                logger.info((f"     DERIVED {function_value} for "
+                
+                if isinstance(function_value, str):
+                    final_value = function_value.strip()[:allowed_length]
+                else:
+                    final_value = function_value
+                output_dict[field_tag] = final_value
+                logger.info((f"     DERIVED {final_value} for "
                                 f"{field_tag}, {field_details_dict} {output_dict[field_tag]}"))
                 # Treat derived fields (like person_id) as Primary Keys (PKs)
                 # and stash the value so that FK fields in subsequent domains can find it.
-                if function_value is not None:
-                    if function_value not in pk_dict[field_tag]:
-                        pk_dict[field_tag].append(function_value)
+                if final_value is not None:
+                    if final_value not in pk_dict[field_tag]:
+                        pk_dict[field_tag].append(final_value)
             except KeyError as e:
                 #print(traceback.format_exc(e))
                 error_fields_set.add(field_tag)

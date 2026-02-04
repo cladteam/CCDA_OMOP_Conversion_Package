@@ -97,6 +97,7 @@ metadata = {
     		    'second_field': 'text_value',
                 'default': 'n/a'
     	    },
+            'length': 60,
             'order': 8 
         },
 
