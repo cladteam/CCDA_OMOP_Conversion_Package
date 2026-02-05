@@ -2,6 +2,7 @@
 import prototype_2.value_transformations as VT
 import prototype_2.data_driven_parse as DDP
 from lxml import etree as ET
+import re
 
 
 def test_simple_field():
@@ -52,6 +53,9 @@ def test_simple_field():
         raise e
 
 def test_simple_field_that_needs_stripped():
+    # EVEN THOUGH IT WILL NOT BE STRIPPED!
+    # We misunderstood a requirement. It was to remove newlines
+    # from the interior and exterior. (leaving the test here, becuase you never know)
     ns = {
         # '': 'urn:hl7-org:v3',  # default namespace
         'hl7': 'urn:hl7-org:v3',
@@ -66,6 +70,7 @@ def test_simple_field_that_needs_stripped():
             </simple_element>
         </grouping_element>
     """
+    expected_text = ' simple text ' # leading and trailing space remain
 
     output_dict = {}
     config_name="TEST"
@@ -90,7 +95,7 @@ def test_simple_field_that_needs_stripped():
         for root_element in root_element_list:
             DDP.do_basic_fields(output_dict, root_element, root_path, config_name, config_dict, error_fields_set, pk_dict)
             print(f"dict: {output_dict}")
-            assert output_dict['text_field'] == 'simple text'
+            assert output_dict['text_field'] == expected_text
         print("done")
     except Exception as e:
         print(e)
@@ -162,8 +167,7 @@ def test_text_field():
             </text_element>
         </grouping_element>
     """
-    the_text="""multi-line
-                       element"""
+    the_text = "multi-line                        element"
 
     output_dict = {}
     config_name="TEST"
@@ -270,11 +274,11 @@ def test_string_truncation_default():
     tree = ET.fromstring(XML_text)
     root_element = tree.xpath("./simple_element", namespaces=ns)[0]
     
-    # DDP.do_basic_fields should now truncate this to 50 by default
+    # DDP.do_basic_fields should now truncate this to MAX_FIELD_LENGTH by default
     DDP.do_basic_fields(output_dict, root_element, "./simple_element", "TEST", config_dict, set(), {})
     
-    assert len(output_dict['text_field']) == 50
-    assert output_dict['text_field'] == "A" * 50
+    assert len(output_dict['text_field']) == DDP.MAX_FIELD_LENGTH
+    assert output_dict['text_field'] == "A" * DDP.MAX_FIELD_LENGTH
 
 def test_string_truncation_explicit():
     ns = {'hl7': 'urn:hl7-org:v3'}
@@ -343,3 +347,52 @@ def test_derived_truncation():
     
     assert output_dict['value_as_string'] == "PART_ONE_|"
  
+def test_text_field_newlines_replaced():
+    ns = {
+        'hl7': 'urn:hl7-org:v3',
+        'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'sdtc': 'urn:hl7-org:sdtc'
+    }
+
+    XML_text = """
+        <grouping_element>
+            <text_element>
+                <value>multi-lines
+                       element
+                       with another line </value>
+            </text_element>
+        </grouping_element>
+    """
+    expected_text = "multi-lines                        element                        with another line "
+
+    output_dict = {}
+    config_name = "TEST"
+    root_path = "text_element"
+    tree = ET.fromstring(XML_text)
+    root_element_list = tree.xpath(root_path, namespaces=ns)
+
+    config_dict = {
+        'text_field': {
+            'config_type': 'FIELD',
+            'element': 'value',
+            'attribute': '#text',
+            'length': 200,
+            'order': 202
+        },
+    }
+
+    error_fields_set = set()
+    pk_dict = {}
+
+    for root_element in root_element_list:
+        DDP.do_basic_fields(
+            output_dict,
+            root_element,
+            root_path,
+            config_name,
+            config_dict,
+            error_fields_set,
+            pk_dict
+        )
+
+        assert output_dict['text_field'] == expected_text

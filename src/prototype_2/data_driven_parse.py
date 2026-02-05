@@ -85,10 +85,12 @@ from prototype_2.metadata import get_meta_dict
 from prototype_2 import ddl as DDL
 
 from prototype_2 import visit_reconcilliation as VR
+import re
 
 logger = logging.getLogger(__name__)
 
 DO_VISIT_DETAIL = False
+MAX_FIELD_LENGTH=50
 
 ns = {
    # '': 'urn:hl7-org:v3',  # default namespace
@@ -322,7 +324,7 @@ def do_constant_fields(output_dict :dict[str, None | str | float | int | int32 |
         logger.info((f"     CONSTANT FIELD config:'{config_name}' field_tag:'{field_tag}'"
                      f" {field_details_dict}"))
         config_type_tag = field_details_dict['config_type']
-        allowed_length = field_details_dict.get('length', 50)
+        allowed_length = field_details_dict.get('length', MAX_FIELD_LENGTH)
         if config_type_tag == 'CONSTANT':
             constant_value = field_details_dict['constant_value']
             if isinstance(constant_value, str):
@@ -355,13 +357,14 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | in
         logger.info((f"     FIELD config:'{config_name}' field_tag:'{field_tag}'"
                      f" {field_details_dict}"))
         type_tag = field_details_dict['config_type']
-        allowed_length = field_details_dict.get('length', 50)
+        allowed_length = field_details_dict.get('length', MAX_FIELD_LENGTH)
         if type_tag == 'FIELD':
             try:
                 attribute_value = parse_field_from_dict(field_details_dict, root_element,
                                                     config_name, field_tag, root_path)
                 if isinstance(attribute_value, str):
-                    output_dict[field_tag] = attribute_value.strip()[:allowed_length]
+                    attribute_value = re.sub(r'\n+', ' ', attribute_value)
+                    output_dict[field_tag] = attribute_value[:allowed_length]
                 else:
                     output_dict[field_tag] = attribute_value
                 logger.info(f"     FIELD for {config_name}/{field_tag} \"{attribute_value}\"")
@@ -378,7 +381,8 @@ def do_basic_fields(output_dict :dict[str, None | str | float | int | int32 | in
             attribute_value = parse_field_from_dict(field_details_dict, root_element,
                                                     config_name, field_tag, root_path)
             if isinstance(attribute_value, str):
-                output_dict[field_tag] = attribute_value.strip()[:allowed_length]
+                attribute_value = re.sub(r'\n+', ' ', attribute_value) 
+                output_dict[field_tag] = attribute_value[:allowed_length]
             else:
                 output_dict[field_tag] = attribute_value
             pk_dict[field_tag].append(attribute_value)
@@ -495,7 +499,7 @@ def do_derived_fields(output_dict: dict[str, None | str | float | int | int32 | 
                     except TypeError as te:
                         print(f"-------error field_name:{field_name}  arg_name:{arg_name}  {te}")
                         print(traceback.format_exc(te))
-            allowed_length = field_details_dict.get('length', 50)
+            allowed_length = field_details_dict.get('length', MAX_FIELD_LENGTH)
             try:
                 function_value = field_details_dict['FUNCTION'](args_dict)
                 
