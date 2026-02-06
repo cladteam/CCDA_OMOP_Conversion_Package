@@ -119,7 +119,7 @@ def create_hash(input_string) -> int64 | None:
     if input_string == '':
         return None
     
-    hash_value = hashlib.md5(input_string.encode('utf-8').upper())
+    hash_value = hashlib.md5(input_string.encode('utf-8'))
     truncated_hash = hash_value.hexdigest()[0:13]
     int_trunc_hash_value = int(truncated_hash, 16)
     return int64(int_trunc_hash_value)
@@ -128,7 +128,7 @@ def create_hash_too_long(input_string):
     # 64 bit is 16 hex characters, output is way longer...
     if input_string == '':
         return None
-    hash_value = hashlib.md5(input_string.encode('utf-8').upper())
+    hash_value = hashlib.md5(input_string.encode('utf-8'))
     hash_digest = hash_value.hexdigest()[0:15]
     long_hash_value = int(hash_digest, 31)
     return long_hash_value
