@@ -42,35 +42,9 @@ metadata = {
             'FK': 'person_id',
             'order': 2
         },
-        'visit_concept_code': {
-    	    'config_type': 'FIELD',
-    	    'element': "hl7:code" ,
-    	    'attribute': "code"
-    	},
-    	'visit_concept_codeSystem': {
-    	    'config_type': 'FIELD',
-    	    'element': "hl7:code",
-    	    'attribute': "codeSystem"
-    	},
-		   'visit_concept_id': {
-    	    'config_type': 'DERIVED',
-    	    'FUNCTION': VT.codemap_xwalk_concept_id,
-    	    'argument_names': {
-    		    'concept_code': 'visit_concept_code',
-    		    'vocabulary_oid': 'visit_concept_codeSystem',
-                'default': 0
-    	    },
-            'order': 3
-    	},
-        	'domain_id': {
-    	    'config_type': 'DERIVED',
-    	    'FUNCTION': VT.codemap_xwalk_domain_id,
-    	    'argument_names': {
-    		    'concept_code': 'visit_concept_code',
-    		    'vocabulary_oid': 'visit_concept_codeSystem',
-                'default': 0
-    	    }
-    	},
+
+
+#        'visit_concept_code', 'order':3 is below , domain_id is with it.
 			
         'visit_start_date_low': { 
             'config_type': 'FIELD', 
@@ -90,7 +64,8 @@ metadata = {
 			'config_type': 'PRIORITY', 
 			'order': 4 
 		},
-         'visit_end_date_high': { 
+
+       'visit_end_date_high': { 
             'config_type': 'FIELD', 
             'data_type': 'DATE', 
             'element': "hl7:effectiveTime/hl7:high[not(@nullFlavor=\"UNK\")]", 
@@ -108,7 +83,8 @@ metadata = {
 			'config_type': 'PRIORITY',
 			 'order':6 
         }, 
-          'visit_start_datetime_low': { 
+
+       'visit_start_datetime_low': { 
             'config_type': 'FIELD', 
             'data_type': 'DATETIME', 
             'element': "hl7:effectiveTime/hl7:low[not(@nullFlavor=\"UNK\")]", 
@@ -122,10 +98,11 @@ metadata = {
             'attribute': "value", 
             'priority': ['visit_start_datetime', 2] 
         },
-		 'visit_start_datetime' : {
-			 'config_type': 'PRIORITY', 
-		 'order': 5
+		'visit_start_datetime' : {
+			'config_type': 'PRIORITY', 
+		    'order': 5
 		},
+
       'visit_end_datetime_high': { 
             'config_type': 'FIELD', 
             'data_type': 'DATETIME', 
@@ -140,16 +117,17 @@ metadata = {
             'attribute': "value", 
             'priority': ['visit_end_datetime', 2] 
         },
-		 'visit_end_datetime' : { 
+		'visit_end_datetime' : { 
 			'config_type': 'PRIORITY', 
 			'order': 7 
 		},
+
         'visit_type_concept_id' : { 
 			'config_type': 'CONSTANT', 
 			'constant_value' : int32(32827), 
 			'order': 8 
 		},
-            'provider_id': {
+        'provider_id': {
             'config_type': 'HASH',
             'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
                         'provider_id_given', 'provider_id_family',
@@ -161,25 +139,311 @@ metadata = {
             'fields': ['care_site_id_root', 'care_site_id_extension'],
             'order': 10
         },
-		'visit_source_value': { 
-			'config_type': 'PRIORITY', 
-			'order': 11 
-		},
-		  'visit_source_concept_id': {
+
+
+
+
+        # --- Components for Priority Fields for visit_concept_id, visit_source_value, and visit_source_concept_id (3, 11, 12)---
+
+
+        # --- Code Source: Primary Encounter Code (Priority 1) ---
+        'visit_concept_code_encounter': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code", 
+            'attribute': "code" 
+        },
+        'visit_concept_codeSystem_encounter': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code", 
+            'attribute': "codeSystem" 
+        },
+        'visit_concept_id_encounter': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_concept_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_encounter', 
+                'vocabulary_oid': 'visit_concept_codeSystem_encounter', 
+                'default': None },
+            'priority':  ['visit_concept_id', 1]
+        },
+        'visit_domain_id_encounter': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_domain_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_encounter', 
+                'vocabulary_oid': 'visit_concept_codeSystem_encounter', 
+                'default': None },
+            'priority':  ['visit_domain_id', 1]
+        },
+        'visit_source_value_encounter': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.concat_fields, 
+            'argument_names': { 
+                'first_field': 'visit_concept_codeSystem_encounter', 
+                'second_field': 'visit_concept_code_encounter', 
+                'default': None },
+            'priority':  ['visit_source_value', 1]
+        },
+        'visit_source_concept_id_encounter': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.visit_xwalk_source_concept_id,
+            'argument_names': {
+                'concept_code': 'visit_concept_code_encounter',
+                'vocabulary_oid': 'visit_concept_codeSystem_encounter',
+                'default': None
+            },
+            'priority': ['visit_source_concept_id', 1]
+        },
+
+        # --- Code Source: Translation 1 (Priority 2) ---
+        'visit_concept_code_trans1': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[1]", 
+            'attribute': "code" 
+        },
+        'visit_concept_system_trans1': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[1]", 
+            'attribute': "codeSystem" 
+        },
+        'visit_concept_id_trans1': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_concept_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans1', 
+                'vocabulary_oid': 'visit_concept_system_trans1', 
+                'default': None },
+            'priority':  ['visit_concept_id', 2]
+        },
+        'visit_domain_id_trans1': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_domain_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans1', 
+                'vocabulary_oid': 'visit_concept_system_trans1', 
+                'default': None },
+            'priority':  ['visit_domain_id', 2]
+        },
+        'visit_source_value_trans1': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.concat_fields, 
+            'argument_names': { 
+                'first_field': 'visit_concept_system_trans1', 
+                'second_field': 'visit_concept_code_trans1', 
+                'default': None },
+            'priority':  ['visit_source_value', 2]
+        },
+        'visit_source_concept_id_trans1': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.visit_xwalk_source_concept_id,
+            'argument_names': {
+                'concept_code': 'visit_concept_code_trans1',
+                'vocabulary_oid': 'visit_concept_system_trans1',
+                'default': None
+            },
+            'priority': ['visit_source_concept_id', 2]
+        },
+
+        # --- Code Source: Translation 2 (Priority 3) ---
+        'visit_concept_code_trans2': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[2]", 
+            'attribute': "code" 
+        },
+        'visit_concept_system_trans2': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[2]", 
+            'attribute': "codeSystem" 
+        },
+        'visit_concept_id_trans2': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_concept_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans2', 
+                'vocabulary_oid': 'visit_concept_system_trans2', 
+                'default': None },
+            'priority':  ['visit_concept_id', 3]
+        },
+        'visit_domain_id_trans2': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_domain_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans2', 
+                'vocabulary_oid': 'visit_concept_system_trans2', 
+                'default': None },
+            'priority':  ['visit_domain_id', 3]
+        },
+        'visit_source_value_trans2': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.concat_fields, 
+            'argument_names': { 
+                'first_field': 'visit_concept_system_trans2', 
+                'second_field': 'visit_concept_code_trans2', 
+                'default': None },
+            'priority':  ['visit_source_value', 3]
+        },
+        'visit_source_concept_id_trans2': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.visit_xwalk_source_concept_id,
+            'argument_names': {
+                'concept_code': 'visit_concept_code_trans2',
+                'vocabulary_oid': 'visit_concept_system_trans2',
+                'default': None
+            },
+            'priority': ['visit_source_concept_id', 3]
+        },
+
+        # --- Code Source: Translation 3 (Priority 4) ---
+        'visit_concept_code_trans3': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[3]", 
+            'attribute': "code" 
+        },
+        'visit_concept_system_trans3': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[3]", 
+            'attribute': "codeSystem" 
+        },
+        'visit_concept_id_trans3': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_concept_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans3', 
+                'vocabulary_oid': 'visit_concept_system_trans3', 
+                'default': None },
+            'priority':  ['visit_concept_id', 4]
+        },
+        'visit_domain_id_trans3': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_domain_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans3', 
+                'vocabulary_oid': 'visit_concept_system_trans3', 
+                'default': None },
+            'priority':  ['visit_domain_id', 4]
+        },
+        'visit_source_value_trans3': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.concat_fields, 
+            'argument_names': { 
+                'first_field': 'visit_concept_system_trans3', 
+                'second_field': 'visit_concept_code_trans3', 
+                'default': None },
+            'priority':  ['visit_source_value', 4]
+        },
+        'visit_source_concept_id_trans3': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.visit_xwalk_source_concept_id,
+            'argument_names': {
+                'concept_code': 'visit_concept_code_trans3',
+                'vocabulary_oid': 'visit_concept_system_trans3',
+                'default': None
+            },
+            'priority': ['visit_source_concept_id', 4]
+        },
+
+        # --- Code Source: Translation 4 (Priority 5) ---
+        'visit_concept_code_trans4': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[4]", 
+            'attribute': "code" 
+        },
+        'visit_concept_system_trans4': { 
+            'config_type': 'FIELD', 
+            'element': "hl7:code/hl7:translation[4]", 
+            'attribute': "codeSystem" 
+        },
+        'visit_concept_id_trans4': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_concept_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans4', 
+                'vocabulary_oid': 'visit_concept_system_trans4', 
+                'default': None },
+            'priority':  ['visit_concept_id', 5]
+        },
+        'visit_domain_id_trans4': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.visit_xwalk_domain_id, 
+            'argument_names': { 
+                'concept_code': 'visit_concept_code_trans4', 
+                'vocabulary_oid': 'visit_concept_system_trans4', 
+                'default': None },
+            'priority':  ['visit_domain_id', 5]
+        },
+        'visit_source_value_trans4': { 
+            'config_type': 'DERIVED', 
+            'FUNCTION': VT.concat_fields, 
+            'argument_names': { 
+                'first_field': 'visit_concept_system_trans4', 
+                'second_field': 'visit_concept_code_trans4', 
+                'default': None },
+            'priority':  ['visit_source_value', 5]
+        },
+        'visit_source_concept_id_trans4': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.visit_xwalk_source_concept_id,
+            'argument_names': {
+                'concept_code': 'visit_concept_code_trans4',
+                'vocabulary_oid': 'visit_concept_system_trans4',
+                'default': None
+            },
+            'priority': ['visit_source_concept_id', 5]
+        },
+        
+     
+        # --- Default / Fallback values (Lowest Priority 9) ---
+        'visit_concept_id_default': {
+            'config_type': 'CONSTANT',
+            'constant_value': 0,
+            'priority': ['visit_concept_id', 9]
+        },
+        'visit_domain_id_default': {
+            'config_type': 'CONSTANT',
+            'constant_value': 0,
+            'priority': ['visit_domain_id', 9]
+        },
+        'visit_source_value_default': { 
+            'config_type': 'CONSTANT', 
+            'constant_value': '', 
+            'priority': ['visit_source_value', 9] 
+        },
+        'visit_source_concept_id_default': {
+            'config_type': 'CONSTANT',
+            'constant_value': None,
+            'priority': ['visit_source_concept_id', 9]
+        },
+        
+        # --- Final Coalesced Fields for visit_concept_id, visit_source_value, and visit_source_concept_id ---
+        'visit_concept_id': { 
+            'order': 3 
+        },
+        'domain_id': {
+            'config_type': 'PRIORITY', 
+    	},
+        'visit_source_value': { 
+            'config_type': 'PRIORITY', 
+            'order': 11 
+        },
+        'visit_source_concept_id': {
             'config_type': 'PRIORITY',
             'order': 12
         },
-		 'admitting_source_concept_id': { 'config_type': None, 'order': 13},
+
+
+
+
+		'admitting_source_concept_id': { 'config_type': None, 'order': 13},
         'admitting_source_value': { 
             'config_type': 'CONSTANT',
-            'constant_value' : '',
+            'constant_value' : None,
 	    'order':14
         },
 		'discharge_to_concept_id': { 'config_type': None, 'order': 15},
 		
         'discharge_to_source_value':  {
             'config_type': 'CONSTANT',
-            'constant_value' : '',
+            'constant_value' : None,
 	    'order':16
         },
         'preceding_visit_occurrence_id': { 'config_type': None, 'order': 17},
@@ -198,5 +462,6 @@ metadata = {
 			'config_type': 'CONSTANT', 
             'constant_value': 'VISIT-from-procedure_procedure',
 			'order':101
-         }, 
+         }
+    }
 }
