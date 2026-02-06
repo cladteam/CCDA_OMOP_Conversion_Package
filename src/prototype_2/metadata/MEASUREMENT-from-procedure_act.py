@@ -45,7 +45,7 @@ metadata = {
     	'measurement_id_field_hash': {
     	    'config_type': 'HASH',
             'fields' : ['person_id', 'visit_occurrence_id', 'measurement_concept_id', 'measurement_time',
-                    'value_as_number', 'value_as_concept_id'],
+                    'value_as_number', 'value_as_concept_id', 'value_source_value'],
             'priority': ('measurement_id', 100)
     	},
         'measurement_id': {
