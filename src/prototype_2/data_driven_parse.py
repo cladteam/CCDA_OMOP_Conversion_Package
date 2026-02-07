@@ -730,20 +730,23 @@ def parse_config_for_single_root(root_element, root_path, config_name,
     logger.info((f"DDP.parse_config_for_single_root()  ROOT for config:{config_name}, we have tag:{root_element.tag}"
                  f" attributes:{root_element.attrib}"))
 
-    do_none_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
-    do_constant_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
-    do_filename_fields(output_dict, root_element, root_path, config_name, config_dict, error_fields_set, filename)
-    do_basic_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
-    do_derived_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
-    do_derived2_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
-    do_foreign_key_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
+    try:
+        do_none_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
+        do_constant_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
+        do_filename_fields(output_dict, root_element, root_path, config_name, config_dict, error_fields_set, filename)
+        do_basic_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
+        do_derived_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
+        do_derived2_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set)
+        do_foreign_key_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
 
-    # NOTE: Order of operations is important here. do_priority_fields() must run BEFORE do_hash_fields().
-    # Many hash fields (e.g., *_ids) depend on values that are resolved through priority logic.
-    # This means that a priority chain should not include any hash fields.
-    do_priority_fields(output_dict, root_element, root_path, config_name,  config_dict,
-                                              error_fields_set, pk_dict)
-    do_hash_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
+        # NOTE: Order of operations is important here. do_priority_fields() must run BEFORE do_hash_fields().
+        # Many hash fields (e.g., *_ids) depend on values that are resolved through priority logic.
+        # This means that a priority chain should not include any hash fields.
+        do_priority_fields(output_dict, root_element, root_path, config_name,  config_dict,
+                                                error_fields_set, pk_dict)
+        do_hash_fields(output_dict, root_element, root_path, config_name,  config_dict, error_fields_set, pk_dict)
+    except Exception as e:
+        raise Exception(f"config {config_name} with path:{root_path} on file:{filename} failed with exception {e}")
 
     logger.info((f"DDP.parse_config_for_single_root()  ROOT for config:{config_name}, "
                  f"we have tag:{root_element.tag}"

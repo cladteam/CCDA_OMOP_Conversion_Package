@@ -416,6 +416,7 @@ metadata = {
         
         # --- Final Coalesced Fields for visit_concept_id, visit_source_value, and visit_source_concept_id ---
         'visit_concept_id': { 
+            'config_type': 'PRIORITY', 
             'order': 3 
         },
         'domain_id': {

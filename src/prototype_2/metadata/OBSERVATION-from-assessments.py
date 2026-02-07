@@ -73,7 +73,7 @@ metadata = {
             'element': "hl7:effectiveTime",
             'attribute': "value",
             'order': 5
-        }
+        },
         'observation_type_concept_id': {
             'config_type': 'CONSTANT',
             'constant_value' : int32(32827),
@@ -113,7 +113,28 @@ metadata = {
 
     	'value_as_concept_id': { 'config_type': None, 'order':  9 },
         'qualifier_concept_id' : { 'config_type': None, 'order': 10 },
-        'unit_concept_id': { 'config_type': None, 'order': 11 },
+        
+		'unit_source_value':  {
+    	    'config_type': 'FIELD',
+    	    'element': 'hl7:value',
+    	    'attribute': 'unit',
+            'order':  17
+    	},
+        'unit_codeSystem':  {
+    	    'config_type': 'CONSTANT',
+			'constant_value' : 'http://unitsofmeasure.org',
+    	},
+        'unit_concept_id': { 
+			'config_type': 'DERIVED', 
+    	    'FUNCTION': VT.valueset_xwalk_concept_id,
+    	    'argument_names': {
+    		    'concept_code': 'unit_source_value',
+    		    'vocabulary_oid': 'unit_codeSystem',
+                'default': None
+            },
+			'order': 11 
+		},
+	   
         'provider_id': { 'config_type': None, 'order': 12 },
         
     	'visit_occurrence_id':	{
@@ -145,12 +166,7 @@ metadata = {
             },
 		    'order': 16
 		},
-
-        'unit_source_value': { 
-            'config_type': 'CONSTANT',
-            'constant_value' : '',
-            'order': 17 
-        },
+    	# (above) 'unit_source_value':	{}'config_type': None,  'order':  17 }
         'qualifier_source_value': { 
             'config_type': 'CONSTANT',
             'constant_value' : '',
