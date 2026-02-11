@@ -337,13 +337,13 @@ def process_string_to_dict(contents, filepath, write_csv_flag, codemap_dict, vis
 
 
 @typechecked
-def process_file(filepath, write_csv_flag) -> dict[str, pd.DataFrame]:
+def process_file(filepath, write_csv_flag, parse_config :str) -> dict[str, pd.DataFrame]:
     """ processes file, processes visits, creates dataset, writes csv
         returns dataset
     """
     base_name = os.path.basename(filepath)
 
-    omop_data = DDP.parse_doc(filepath, get_meta_dict())
+    omop_data = DDP.parse_doc(filepath, get_meta_dict(), parse_config)
 
     # Visit FK reconciliation:
     VR.assign_visit_occurrence_ids_to_events(omop_data)
@@ -554,13 +554,13 @@ def process_dataset_of_strings(dataset_name, export_datasets, write_csv_flag):
     
     
 # ENTRY POINT for directory of files
-def process_directory(directory_path, export_datasets, write_csv_flag):
+def process_directory(directory_path, export_datasets, write_csv_flag, parse_config):
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
     only_files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
     for file in (only_files):
         if file.endswith(".xml"):
-            new_data_dict = process_file(os.path.join(directory_path, file), write_csv_flag)
+            new_data_dict = process_file(os.path.join(directory_path, file), write_csv_flag, parse_config)
             for key in new_data_dict:
                 if key in omop_dataset_dict and omop_dataset_dict[key] is not None:
                     if new_data_dict[key] is  not None:
@@ -588,16 +588,18 @@ def main():
         epilog='epilog?')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-d', '--directory', help="directory of files to parse")
-    group.add_argument('-f', '--filename', help="filename to parse")
+    group.add_argument('-f', '--filename', help="XML filename to parse")
     group.add_argument('-ds', '--dataset', help="dataset to parse")
+    parser.add_argument('-g', '--config', help="parse configuration filename to use")
     parser.add_argument('-x', '--export', action=argparse.BooleanOptionalAction, help="export to foundry")
     parser.add_argument('-c', '--write_csv', action=argparse.BooleanOptionalAction, help="write CSV files to local")
     #parser.add_argument('-l', '--limit', action=argparse.BooleanOptionalAction, type=int, help="max files to process")  #, default=0)
     parser.add_argument('-l', '--limit', type=int, help="max files to process", default=0)
     parser.add_argument('-s', '--skip', type=int, help="files to skip before processing to limit, -s 100 ", default=0) 
     args = parser.parse_args()
-    print(f"got args:  dataset:{args.dataset} export:{args.export} csv:{args.write_csv} limit:{args.limit}")
-    print(args)
+    print(f"got args:  dataset:{args.dataset} filename:{args.filename} directory:{args.directory} export:{args.export} ")
+    print(f"got args 2: csv:{args.write_csv} limit:{args.limit} skip:{args.skip} config:{args.config}   ")
+    print(f" ARGS: {args}")
 
     
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
@@ -640,17 +642,16 @@ def main():
         logger.error(traceback.format_exc(e))
         return # Exit if mappings cannot be loaded
 
-    if True:
-        # Single File, put the datasets into the omop_dataset_dict
-        if args.filename is not None:
-            process_file(args.filename, args.write_csv)
-            
-        elif args.directory is not None:
-            domain_dataset_dict = process_directory(args.directory, args.export, args.write_csv)
-        elif args.dataset is not None:
-            domain_dataset_dict = process_dataset_of_files(args.dataset, args.export, args.write_csv, args.limit, args.skip)
-        else:
-            logger.error("Did args parse let us  down? Have neither a file, nor a directory.")
+    # Single File, put the datasets into the omop_dataset_dict
+    if args.filename is not None:
+        process_file(args.filename, args.write_csv, args.config)
+        
+    elif args.directory is not None:
+        domain_dataset_dict = process_directory(args.directory, args.export, args.write_csv, args.config)
+    elif args.dataset is not None:
+        domain_dataset_dict = process_dataset_of_files(args.dataset, args.export, args.write_csv, args.limit, args.skip)
+    else:
+        logger.error("Did args parse let us  down? Have neither a file, nor a directory.")
 
             
 if __name__ == '__main__':

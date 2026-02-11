@@ -953,9 +953,13 @@ def parse_string(ccda_string, file_path,
 
 @typechecked
 def parse_doc(file_path, 
-              metadata :dict[str, dict[str, dict[str, str]]]) -> dict[str, 
+              metadata :dict[str, dict[str, dict[str, str]]],
+              parse_config : str) -> dict[str, 
                       list[ dict[str,  None | str | float | int | int64] | None  ] | None]:
     """ Parses many meta configs from a single file, collects them in omop_dict.
+        - file_path
+        - metadata
+        - parse_config the name of a single config to run, all if None.
         Returns omop_dict, a  dict keyed by configuration names, 
           each a list of record/row dictionaries.
     """
@@ -964,13 +968,15 @@ def parse_doc(file_path,
     tree = ET.parse(file_path)
     base_name = os.path.basename(file_path)
     for config_name, config_dict in metadata.items():
-#        print(f" {base_name} {config_name}")
-        data_dict_list = parse_config_from_xml_file(tree, config_name, config_dict, base_name, pk_dict)
-        if config_name in omop_dict: 
-            omop_dict[config_name] = omop_dict[config_name].extend(data_dict_list)
+        if parse_config is None or parse_config == config_name:
+            print(f"\nPROCESSING config \"{config_name}\" on file:\"{file_path}\" ")
+            data_dict_list = parse_config_from_xml_file(tree, config_name, config_dict, base_name, pk_dict)
+            if config_name in omop_dict: 
+                omop_dict[config_name] = omop_dict[config_name].extend(data_dict_list)
+            else:
+                omop_dict[config_name] = data_dict_list
         else:
-            omop_dict[config_name] = data_dict_list
-            
+            print(f"\nSKIPPING config \"{config_name}\" ")
 
     # Try:
     if DO_VISIT_DETAIL:
@@ -1020,28 +1026,22 @@ def print_omop_structure(omop :dict[str, list[ dict[str, None | str | float | in
 
                     
 @typechecked
-def process_file(filepath :str, print_output: bool):
+def process_file(filepath :str, print_output: bool, parse_config :str):
     """ Process each configuration in the metadata for one file.
+        - filepath
+        - print_output
+        - parse_config is the name or key of the configuration, the top-level entry in the
+          metadata dictionary in the parse configuration files, like OBSERVATION-from-Procedure
         Returns nothing.
         Prints the omop_data. See better functions in layer_datasets.puy
     """
     print(f"PROCESSING {filepath} ")
     logger.info(f"PROCESSING {filepath} ")
-#    base_name = os.path.basename(filepath)
-#    logging.basicConfig(
-#        format='%(levelname)s: %(message)s',
-##        filename=f"logs/log_file_{base_name}.log",
-##        force=True,
-#        # level=logging.ERROR
-#        level=logging.WARNING
-#        # level=logging.INFO
-#        # level=logging.DEBUG
-#    )
 
     metadata = get_meta_dict()
 
     print(f"    {filepath} parse_doc() ")
-    omop_data = parse_doc(filepath, metadata)
+    omop_data = parse_doc(filepath, metadata, parse_config)
     print(f"    {filepath} reconcile_visit()() ")
     VR.assign_visit_occurrence_ids_to_events(omop_data)
     VR.assign_visit_detail_ids_to_events(omop_data)

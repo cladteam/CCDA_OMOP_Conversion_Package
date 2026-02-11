@@ -669,7 +669,10 @@ def assign_visit_occurrence_ids_to_events(data_dict: dict[str,
     for cfg_name, domain_name in config_to_domain_map.items():
         if cfg_name in data_dict and data_dict[cfg_name]:
             if domain_name in ['Measurement', 'Observation', 'Condition', 'Procedure', 'Drug', 'Device']:
-                reconcile_visit_FK_with_specific_domain(domain_name, data_dict[cfg_name], data_dict[VISIT_CFG_NAME])
+                if VISIT_CFG_NAME in data_dict:
+                    reconcile_visit_FK_with_specific_domain(domain_name, data_dict[cfg_name], data_dict[VISIT_CFG_NAME])
+                else:
+                    print(f"NO \"{VISIT_CFG_NAME}\", no visit reconciliation or inference done.")
 
     for cfg_name, domain_name in config_to_domain_map.items():
         if cfg_name in data_dict and data_dict[cfg_name]:
