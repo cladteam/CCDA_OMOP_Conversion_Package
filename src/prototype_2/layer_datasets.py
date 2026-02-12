@@ -460,7 +460,7 @@ def do_write_csv_files(domain_dataset_dict):
 
         
 # ENTRY POINT for dataset of files
-def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limit, skip):
+def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limit, skip,parse_config):
     logger.info("starting dataset:{dataset_name} export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
@@ -476,9 +476,9 @@ def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limi
         else:
             if limit == 0 or file_count < limit:
                 filepath = filegen.download()
-                
+            
                 logger.info(f"PROCESSING {file_count} {os.path.basename(filepath)}  {file_count}  export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
-                new_data_dict = process_file(filepath, write_csv_flag)
+                new_data_dict = process_file(filepath, write_csv_flag, parse_config)
                 
                 for key in new_data_dict:
                     if key in omop_dataset_dict and omop_dataset_dict[key] is not None:
@@ -502,7 +502,54 @@ def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limi
     if export_datasets:
         logger.info(f"Exporting dataset for {dataset_name}") 
         do_export_datasets(domain_dataset_dict)
+
+# ENTRY POINT for a single file in a dataset
+def process_file_from_dataset(dataset_name, export_datasets, write_csv_flag, limit, skip, parse_config, file_name):
+    logger.info("starting dataset:{dataset_name} export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
+    omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
+    ccda_documents = Dataset.get(dataset_name)
+    logger.info(ccda_documents.files())
+    ccda_documents_generator = ccda_documents.files()
+    skip_count=0
+    file_count=0
+    for filegen in ccda_documents_generator:
+        if skip>0 and skip_count < skip:
+            skip_count+=1
+            logger.info(f"skipping  {skip_count} {type(filegen)}")
+        else:
+            if limit == 0 or file_count < limit:
+                filename = filegen.path
+                logger.info(f"filename {filename}")
+
+                if filename == file_name:
+                    filepath = filegen.download()
+                
+                    logger.info(f"PROCESSING {file_count} {os.path.basename(filepath)}  {file_count}  export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
+                    new_data_dict = process_file(filepath, write_csv_flag, parse_config)
+                    
+                    for key in new_data_dict:
+                        if key in omop_dataset_dict and omop_dataset_dict[key] is not None:
+                            if new_data_dict[key] is  not None:
+                                omop_dataset_dict[key] = pd.concat([ omop_dataset_dict[key], new_data_dict[key] ])
+                        else:
+                            omop_dataset_dict[key]= new_data_dict[key]
+                        if new_data_dict[key] is not None:
+                            logger.info(f"{filepath} {key} {len(omop_dataset_dict)} {omop_dataset_dict[key].shape} {new_data_dict[key].shape}")
+                        else:
+                            logger.info(f"{filepath} {key} {len(omop_dataset_dict)} None / no data")
+                file_count += 1
+            else:
+                break
+            
+    domain_dataset_dict = combine_datasets(omop_dataset_dict)
+    if write_csv_flag:
+        logger.info(f"Writing CSV for input dataset: {dataset_name}")
+        do_write_csv_files(domain_dataset_dict)
+
+    if export_datasets:
+        logger.info(f"Exporting dataset for {dataset_name}") 
+        do_export_datasets(domain_dataset_dict)
     
 # ENTRY POINT for dataset of strings
 def process_dataset_of_strings(dataset_name, export_datasets, write_csv_flag):
@@ -586,10 +633,10 @@ def main():
         prog='CCDA - OMOP parser with datasets layer layer_datasets.py',
         description="reads CCDA XML, translate to and writes OMOP CSV files",
         epilog='epilog?')
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-d', '--directory', help="directory of files to parse")
-    group.add_argument('-f', '--filename', help="XML filename to parse")
-    group.add_argument('-ds', '--dataset', help="dataset to parse")
+    #group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument('-d', '--directory', help="directory of files to parse")
+    parser.add_argument('-f', '--filename', help="XML filename to parse")
+    parser.add_argument('-ds', '--dataset', help="dataset to parse")
     parser.add_argument('-g', '--config', help="parse configuration filename to use")
     parser.add_argument('-x', '--export', action=argparse.BooleanOptionalAction, help="export to foundry")
     parser.add_argument('-c', '--write_csv', action=argparse.BooleanOptionalAction, help="write CSV files to local")
@@ -643,16 +690,20 @@ def main():
         return # Exit if mappings cannot be loaded
 
     # Single File, put the datasets into the omop_dataset_dict
-    if args.filename is not None:
+    if args.filename is not None and args.dataset is None:
         process_file(args.filename, args.write_csv, args.config)
-        
+
     elif args.directory is not None:
         domain_dataset_dict = process_directory(args.directory, args.export, args.write_csv, args.config)
     elif args.dataset is not None:
-        domain_dataset_dict = process_dataset_of_files(args.dataset, args.export, args.write_csv, args.limit, args.skip)
+        if args.filename is not None:
+            domain_dataset_dict = process_file_from_dataset(args.dataset, args.export, args.write_csv, args.limit, args.skip, args.config, args.filename)
+        else:
+            domain_dataset_dict = process_dataset_of_files(args.dataset, args.export, args.write_csv, args.limit, args.skip, args.config)
     else:
         logger.error("Did args parse let us  down? Have neither a file, nor a directory.")
 
             
 if __name__ == '__main__':
     main()
+# local_file = Dataset.get("my_alias").files().get("file.pdf").download()
