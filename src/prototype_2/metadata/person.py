@@ -37,7 +37,7 @@ metadata = {
             'FUNCTION': VT.map_filename_to_mspi,
             'argument_names': {
                 'filename': 'filename',
-                # 'default': 'person_source_value' 
+                'default': 0 
             },
             'order': 1
         },
@@ -45,7 +45,10 @@ metadata = {
         'data_partner_id': {
             'config_type': 'DERIVED',
             'FUNCTION': VT.get_data_partner_id, 
-            'argument_names': { 'filename': 'filename' },
+            'argument_names': { 
+                'filename': 'filename',
+                'default': 0 
+            },
             'order': 20
         },
 
