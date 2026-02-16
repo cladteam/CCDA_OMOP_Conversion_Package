@@ -100,16 +100,6 @@ ns = {
 }
 
 
-#from foundry.transforms import Dataset
-#concept_xwalk = Dataset.get("concept_xwalk")
-#concept_xwalk_files = concept_xwalk.files().download()
-
-#def create_8_byte_hash(input_string):
-#    hash_value = hashlib.md5(input_string.encode('utf-8'))
-#    int_hash_value = int(hash_value.hexdigest(), 16)
-#    bigint_hash_value = ctypes.c_int64(int_hash_value % 2**64).value
-#    return bigint_hash_value
-
 #@typechecked
 def create_hash(input_string) -> int64 | None:
     """ matches common SQL code when that code also truncates to 13 characters
@@ -602,8 +592,8 @@ def do_hash_fields(output_dict: dict[str, None | str | float | int | int32 | int
                 if field_name in output_dict:
                     value_list.append(output_dict[field_name])
                 else:
-                    logger.error("unknown HASH field  {field_name}")
-                    print("unknown HASH field  {field_name}")
+                    logger.error(f"unknown HASH field  {field_name}")
+                    print(f"unknown HASH field  {field_name}")
             hash_input =  "|".join(map(str, value_list))
             #hash_value = create_hash_part1(hash_input)
             hash_value = create_hash(hash_input)
@@ -663,7 +653,9 @@ def do_priority_fields(output_dict: dict[str, None | str | float | int | int32 |
 
         found=False
         for value_field_pair in sorted_contents: 
-            if value_field_pair[0] in output_dict and output_dict[value_field_pair[0]] is not None:
+            if value_field_pair[0] in output_dict and \
+               output_dict[value_field_pair[0]] is not None and \
+               output_dict[value_field_pair[0]] !='':
                 output_dict[priority_name] = output_dict[value_field_pair[0]]
                 pk_dict[priority_name].append(output_dict[value_field_pair[0]])
                 found=True
@@ -677,7 +669,7 @@ def do_priority_fields(output_dict: dict[str, None | str | float | int | int32 |
                 default_value = config_dict['default']
             output_dict[priority_name] = default_value
             pk_dict[priority_name].append(default_value)
-
+            print(f"  PRIORITY config:\"{config_name}\" defaulting {priority_name} to {default_value}")
     return priority_fields
     
     
@@ -769,7 +761,7 @@ def parse_config_for_single_root(root_element, root_path, config_name,
 
     if 'domain_id' not in output_dict:
         logger.error("'domain_id' mising from output dict when testing expected_domain_id. Check your "
-            "parse configuration \"{config_name}\" for a field called 'domain_id'. If you don't have one, add it."
+            f"parse configuration \"{config_name}\" for a field called 'domain_id'. If you don't have one, add it."
             "If you do, check the spelling. Your row will be REJECTED or DENY/DENIED.")        
     domain_id = output_dict.get('domain_id', None) # fetch this before it gets omitted
     output_dict = sort_output_and_omit_dict(output_dict, config_dict, config_name)
@@ -777,8 +769,8 @@ def parse_config_for_single_root(root_element, root_path, config_name,
 
     # Strict: null domain_id is not good, but don't expect a domain id from non-domain tables
     if (expected_domain_id == domain_id
-        or expected_domain_id in ['Person', 'Location', 'Care_Site', 'Provider', 'Visit']):
- 
+        or expected_domain_id in ['Person', 'Location', 'Care_Site', 'Provider']):
+        print(f"ACCEPTING \"{expected_domain_id}\"=\"{domain_id}\" {config_name}")
         if expected_domain_id == "Observation":
             logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
                             f"row id:{output_dict['observation_id']} "
@@ -791,12 +783,29 @@ def parse_config_for_single_root(root_element, root_path, config_name,
             logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
                             f"row id:{output_dict['procedure_occurrence_id']} "
                             f"concept code:{output_dict['procedure_concept_id']}") )
+        elif expected_domain_id == "Condition":
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['condition_occurrence_id']} "
+                            f"concept code:{output_dict['condition_concept_id']}") )
         elif expected_domain_id == "Device":
             logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
                             f"row id:{output_dict['device_exposure_id']} "
                             f"concept code:{output_dict['device_concept_id']}") )
+        elif expected_domain_id == "Drug":
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['drug_exposure_id']} "
+                            f"concept code:{output_dict['drug_concept_id']}") )
+        elif expected_domain_id == "Visit":
+            logger.warning((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['visit_occurrence_id']} "
+                            f"concept code:{output_dict['visit_concept_id']}") )
+            print((f"ACCEPTING {domain_id} in config: {config_name} "
+                            f"row id:{output_dict['visit_occurrence_id']} "
+                            f"concept code:{output_dict['visit_concept_id']}") )
+
         return output_dict
     else:
+        print(f"REJECTING \"{expected_domain_id}\"!=\"{domain_id}\" {config_name}")
         if expected_domain_id == "Observation":
             logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} in config: {config_name} "
                             f"row id:{output_dict['observation_id']} "
@@ -821,6 +830,13 @@ def parse_config_for_single_root(root_element, root_path, config_name,
             logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
                               f"row id:{output_dict['condition_occurrence_id']} "
                               f"concept code:{output_dict['condition_concept_id']}") )
+        elif expected_domain_id == "Visit":
+            logger.warning( ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['visit_occurrence_id']} "
+                              f"concept code:{output_dict['visit_concept_id']}"))
+            print(          ( f"DENYING/REJECTING have:{domain_id} expect:{expected_domain_id} in config: {config_name} "
+                              f"row id:{output_dict['visit_occurrence_id']} "
+                              f"concept code:{output_dict['visit_concept_id']}"))
         else:
             logger.warning((f"DENYING/REJECTING have:{domain_id} domain:{expected_domain_id} in config: {config_name} "))
         return None
@@ -870,17 +886,7 @@ def parse_config_from_xml_file(tree, config_name,
              their values are their values. It's a sort of global space for carrying PKs 
              to other parts of processing where they will be used as FKs. This is useful
              for things like the main person_id that is part of the context the document creates.
-
-
     """
-
-    # log to a file per file/config
-#    base_name = os.path.basename(filename)
-#    logging.basicConfig(
-#        format='%(levelname)s: %(message)s',
-##        filename=f"logs/log_config_{base_name}_{config_name}.log",
-#        #force=True, level=logging.WARNING)
-#        force=True, level=logging.ERROR)
 
     # Find root
     if 'root' not in config_dict:
@@ -983,15 +989,16 @@ def parse_doc(file_path,
     tree = ET.parse(file_path)
     base_name = os.path.basename(file_path)
     for config_name, config_dict in metadata.items():
-        if parse_config is None or parse_config == config_name:
+        if parse_config is None or parse_config == '' or parse_config == config_name:
             print(f"\nPROCESSING config \"{config_name}\" on file:\"{file_path}\" ")
             data_dict_list = parse_config_from_xml_file(tree, config_name, config_dict, base_name, pk_dict)
             if config_name in omop_dict: 
                 omop_dict[config_name] = omop_dict[config_name].extend(data_dict_list)
             else:
                 omop_dict[config_name] = data_dict_list
-        else:
-            print(f"\nSKIPPING config \"{config_name}\" ")
+            print(f"\nPROCESSED config \"{config_name}\" got:\"{omop_dict[config_name]}\" ")
+        #else:
+        #    print(f"\nSKIPPING config \"{config_name}\" ")
 
     # Try:
     if DO_VISIT_DETAIL:

@@ -186,7 +186,10 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                     non_nullable_cols = NON_NULLABLE_COLUMNS.get(table_name, [])
                     for column_name, column_type in domain_dataframe_column_types[table_name].items():
                         if column_type in [datetime64, DT.date, DT.datetime]:
-                            domain_df[column_name] = pd.to_datetime(domain_df[column_name], errors='coerce')
+                            if column_name in domain_df:
+                                domain_df[column_name] = pd.to_datetime(domain_df[column_name], errors='coerce')
+                            else:
+                                domain_df[column_name] = None
                         else:
                             try:
                                 # Only fill missing values for non-nullable columns
@@ -217,10 +220,8 @@ def create_omop_domain_dataframes(omop_data: dict[str, list[ dict[str,  None | s
                     after_dropped = len(domain_df)
 
                     if before_dropped != after_dropped:
-                        logger.warning(
-                            f"{config_name}: dropped {before_dropped - after_dropped} rows with missing required fields "
-                            f"(table={table_name})"
-                            )
+                        logger.warning(f"{config_name}: dropped {before_dropped - after_dropped} "
+                                       f"rows with missing required fields (table={table_name})")
 
                 df_dict[config_name] = domain_df
             except ValueError as ve:
@@ -460,7 +461,7 @@ def do_write_csv_files(domain_dataset_dict):
 
         
 # ENTRY POINT for dataset of files
-def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limit, skip,parse_config):
+def process_dataset_of_files(dataset_name, export_datasets, write_csv_flag, limit, skip, parse_config):
     logger.info("starting dataset:{dataset_name} export:{export_datasets} csv:{write_csv_flag} limit:{limit}")
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
@@ -637,7 +638,7 @@ def main():
     parser.add_argument('-d', '--directory', help="directory of files to parse")
     parser.add_argument('-f', '--filename', help="XML filename to parse")
     parser.add_argument('-ds', '--dataset', help="dataset to parse")
-    parser.add_argument('-g', '--config', help="parse configuration filename to use")
+    parser.add_argument('-g', '--config', default='', help="parse configuration filename to use")
     parser.add_argument('-x', '--export', action=argparse.BooleanOptionalAction, help="export to foundry")
     parser.add_argument('-c', '--write_csv', action=argparse.BooleanOptionalAction, help="write CSV files to local")
     #parser.add_argument('-l', '--limit', action=argparse.BooleanOptionalAction, type=int, help="max files to process")  #, default=0)
@@ -652,24 +653,20 @@ def main():
     omop_dataset_dict = {} # keyed by dataset_names (legacy domain names)
     
     try:
-        logger.info("starting with maps")
-        logger.info("xwalk visitmap")
+        codemap_df = Dataset.get("codemap_xwalk").read_table(format="pandas")
+        codemap_dict = U.create_codemap_dict(codemap_df)
+        logger.error(f"CODEMAP  {len(codemap_dict)}")
+        VT.set_codemap_dict(codemap_dict)
+
         visit_map_df = Dataset.get("visit_concept_xwalk_mapping_dataset").read_table(format="pandas")
         visitmap_dict = U.create_visit_dict(visit_map_df)
         logger.error(f"VISITMAP  {len(visitmap_dict)}")
         VT.set_visitmap_dict(visitmap_dict)
 
-        logger.info("xwalk valuesetmap")
         valueset_map_df = Dataset.get("ccda_value_set_mapping_table_dataset").read_table(format="pandas")
         valueset_dict = U.create_valueset_dict(valueset_map_df)
         logger.error(f"VALUESET  {len(valueset_dict)}")
         VT.set_valueset_dict(valueset_dict)
-        
-        logger.info("xwalk codemap")
-        codemap_df = Dataset.get("codemap_xwalk").read_table(format="pandas")
-        codemap_dict = U.create_codemap_dict(codemap_df)
-        logger.error(f"CODEMAP  {len(codemap_dict)}")
-        VT.set_codemap_dict(codemap_dict)
 
         metadata_df = Dataset.get("ccda_response_metadata").read_table(format="pandas")
         # Create a dictionary: { 'filename.xml': mspi_value }
@@ -679,10 +676,6 @@ def main():
         VT.set_mspi_map(mspi_map)
         VT.set_partner_map(partner_map)
         logger.info(f"MSPI Map initialized with {len(mspi_map)} entries.")
-
-        
-        
-        logger.info("Successfully loaded and initialized mapping dictionaries.")
 
     except Exception as e:
         logger.error(f"Failed to load mapping datasets from Foundry: {e}")

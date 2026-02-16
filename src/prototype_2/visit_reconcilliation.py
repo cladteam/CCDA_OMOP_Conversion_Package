@@ -514,7 +514,7 @@ def reconcile_visit_FK_with_specific_domain(domain: str,
 
             # Start with the plain date. If a datetime value is present, prefer it (more specific)
             date_field_value = thing[date_field_name]
-            if thing[datetime_field_name] is not None and isinstance(thing[datetime_field_name], datetime.datetime):
+            if datetime_field_name in thing and (thing[datetime_field_name] is not None and isinstance(thing[datetime_field_name], datetime.datetime)):
                 date_field_value = strip_tz(thing[datetime_field_name])
 
             if date_field_value is not None:

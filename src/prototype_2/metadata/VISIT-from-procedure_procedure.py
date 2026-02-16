@@ -166,14 +166,14 @@ metadata = {
                 'default': None },
             'priority':  ['visit_concept_id', 1]
         },
-        'visit_domain_id_encounter': { 
+        'domain_id_encounter': { 
             'config_type': 'DERIVED', 
             'FUNCTION': VT.visit_xwalk_domain_id, 
             'argument_names': { 
                 'concept_code': 'visit_concept_code_encounter', 
                 'vocabulary_oid': 'visit_concept_codeSystem_encounter', 
                 'default': None },
-            'priority':  ['visit_domain_id', 1]
+            'priority':  ['domain_id', 1]
         },
         'visit_source_value_encounter': { 
             'config_type': 'DERIVED', 
@@ -215,14 +215,14 @@ metadata = {
                 'default': None },
             'priority':  ['visit_concept_id', 2]
         },
-        'visit_domain_id_trans1': { 
+        'domain_id_trans1': { 
             'config_type': 'DERIVED', 
             'FUNCTION': VT.visit_xwalk_domain_id, 
             'argument_names': { 
                 'concept_code': 'visit_concept_code_trans1', 
                 'vocabulary_oid': 'visit_concept_system_trans1', 
                 'default': None },
-            'priority':  ['visit_domain_id', 2]
+            'priority':  ['domain_id', 2]
         },
         'visit_source_value_trans1': { 
             'config_type': 'DERIVED', 
@@ -264,14 +264,14 @@ metadata = {
                 'default': None },
             'priority':  ['visit_concept_id', 3]
         },
-        'visit_domain_id_trans2': { 
+        'domain_id_trans2': { 
             'config_type': 'DERIVED', 
             'FUNCTION': VT.visit_xwalk_domain_id, 
             'argument_names': { 
                 'concept_code': 'visit_concept_code_trans2', 
                 'vocabulary_oid': 'visit_concept_system_trans2', 
                 'default': None },
-            'priority':  ['visit_domain_id', 3]
+            'priority':  ['domain_id', 3]
         },
         'visit_source_value_trans2': { 
             'config_type': 'DERIVED', 
@@ -313,14 +313,14 @@ metadata = {
                 'default': None },
             'priority':  ['visit_concept_id', 4]
         },
-        'visit_domain_id_trans3': { 
+        'domain_id_trans3': { 
             'config_type': 'DERIVED', 
             'FUNCTION': VT.visit_xwalk_domain_id, 
             'argument_names': { 
                 'concept_code': 'visit_concept_code_trans3', 
                 'vocabulary_oid': 'visit_concept_system_trans3', 
                 'default': None },
-            'priority':  ['visit_domain_id', 4]
+            'priority':  ['domain_id', 4]
         },
         'visit_source_value_trans3': { 
             'config_type': 'DERIVED', 
@@ -362,14 +362,14 @@ metadata = {
                 'default': None },
             'priority':  ['visit_concept_id', 5]
         },
-        'visit_domain_id_trans4': { 
+        'domain_id_trans4': { 
             'config_type': 'DERIVED', 
             'FUNCTION': VT.visit_xwalk_domain_id, 
             'argument_names': { 
                 'concept_code': 'visit_concept_code_trans4', 
                 'vocabulary_oid': 'visit_concept_system_trans4', 
                 'default': None },
-            'priority':  ['visit_domain_id', 5]
+            'priority':  ['domain_id', 5]
         },
         'visit_source_value_trans4': { 
             'config_type': 'DERIVED', 
@@ -398,10 +398,10 @@ metadata = {
             'constant_value': 0,
             'priority': ['visit_concept_id', 9]
         },
-        'visit_domain_id_default': {
+        'domain_id_default': {
             'config_type': 'CONSTANT',
-            'constant_value': 0,
-            'priority': ['visit_domain_id', 9]
+            'constant_value': 'Visit',
+            'priority': ['domain_id', 9]
         },
         'visit_source_value_default': { 
             'config_type': 'CONSTANT', 
