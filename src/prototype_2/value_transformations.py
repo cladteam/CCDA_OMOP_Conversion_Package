@@ -194,19 +194,85 @@ def _codemap_xwalk(vocabulary_oid, concept_code, column_name, default):
 """ 
 
 def visit_xwalk_concept_id(args_dict):
-    return codemap_xwalk_concept_id(args_dict)
+    """ expects: vocabulary_oid, concept_code
+        returns: concept_id AS INTEGER (because that's what's in the table), not necessarily standard
+    """
+    id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
+                'target_concept_id', args_dict['default']) 
+
+    if args_dict['vocabulary_oid'] == '2.16.840.1.113883.5.4' and \
+       args_dict['concept_code'] == 'AMB':
+        if id_value is None:
+            raise Exception(f"AMB not mapped {args_dict} ")
+        elif id_value == 0:
+            raise Exception(f"AMB mapped to No Matching Concept {args_dict} \"{id_value}\" ")
+        elif id_value != 9202 and id_value != '9202':
+            raise Exception(f"AMB not mapped correctly {args_dict} \"{id_value}\" type:{type(id_value)}")
+
+    if args_dict['vocabulary_oid'] == '2.16.840.1.113883.6.12' and \
+        args_dict['concept_code'] == 'AMB':
+        if id_value is None:
+            raise Exception(f"AMB not mapped {args_dict} ")
+        elif id_value == 0:
+            raise Exception(f"AMB mapped to No Matching Concept {args_dict} \"{id_value}\" ")
+        elif id_value != 9202 and id_value != '9202':
+            raise Exception(f"AMB not mapped correctly {args_dict} \"{id_value}\" type:{type(id_value)}")
+
+    if id_value is not None:
+        logger.debug(f"visit_xwalk_concept_id concept_id is {id_value}  for {args_dict}")
+        return int32(id_value)
+    else:
+        logger.error(f"visit_xwalk_concept_id concept_id is None  for {args_dict}")
+        return None
 
 
 def visit_xwalk_domain_id(args_dict):
-    return codemap_xwalk_domain_id(args_dict)
+    """ expects: vocabulary_oid, concept_code
+        returns: domain_id
+    """
+    id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
+                'target_domain_id', args_dict['default']) 
+
+    if id_value is not None:
+        return str(id_value)
+    else:
+        return None
 
 
 def visit_xwalk_source_concept_id(args_dict):
-    return codemap_xwalk_source_concept_id(args_dict)
+    """ expects: vocabulary_oid, concept_code
+        returns: unmapped concept_id AS INTEGER (because that's what's in the table), not necessarily standard
+    """ 
+    id_value = _visit_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
+                'source_concept_id', args_dict['default']) 
+    if id_value is not None:
+        return int32(id_value)
+    else:
+        return None
 
 
 def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
-    return _codemap_xwalk(vocabulary_oid, concept_code, column_name, default)
+    visitmap_dict =  get_visitmap_dict()
+    if visitmap_dict is None:
+        raise Exception("visitmap_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py")
+
+    if len(visitmap_dict) < 1:
+        raise Exception("visitmap_dict has zero length prototype_2/value_transformations.py for value_transformations.py")
+
+    mapping_rows = visitmap_dict[(vocabulary_oid, concept_code)]
+    if mapping_rows is None:
+        logger.error(f"visitmap_dict mapping_rows is None  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
+        return default
+
+    if len(mapping_rows) < 1:
+        logger.error(f"visitmap_dict mapping_rows is <1  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
+        return default
+
+    if len(mapping_rows) > 1:
+       logger.warn(f"_visit_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+
+    return mapping_rows[0][column_name]
+
 
     
     
@@ -217,18 +283,116 @@ def _visit_xwalk(vocabulary_oid, concept_code, column_name, default):
 """    
 
 def valueset_xwalk_concept_id(args_dict):
-    return codemap_xwalk_concept_id(args_dict)
+    """ expects: vocabulary_oid, concept_code
+        returns: concept_id AS INTEGER
+    """
+
+    id_value = _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'],
+                'target_concept_id', args_dict['default'])
+
+
+    if args_dict['vocabulary_oid'] == '2.16.840.1.113883.5.1' and \
+       args_dict['concept_code'] == 'F':
+        if id_value is None:
+            raise Exception(f"F not mapped {args_dict} ")
+        elif id_value == 0:
+            raise Exception(f"F mapped to No Matching Concept {args_dict} \"{id_value}\" ")
+        elif id_value != 8532 and id_value != "8532":
+            raise Exception(f"F not mapped correctly {args_dict} \"{id_value}\" type:{type(id_value)} ")
+        ##elif id_value == 8532 or id_value == "8532":
+        ##    raise Exception(f"F MAPPED CORRECTLY {args_dict} \"{id_value}\" type:{type(id_value)} ")
+
+    if id_value is not None:
+        return int32(id_value)
+    else:
+        return None       
     
 def valueset_xwalk_domain_id(args_dict):
-    return codemap_xwalk_domain_id(args_dict)
+    """ expects: vocabulary_oid, concept_code
+        returns: domain_id
+    """
+    id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
+                'target_domain_id', args_dict['default']) 
+    
+    if id_value is not None:
+        return str(id_value)
+    else:
+        return None
 
     
 def valueset_xwalk_source_concept_id(args_dict):
-    return codemap_xwalk_source_concept_id(args_dict)
+    """ expects: vocabulary_oid, concept_code
+        returns: unmapped concept_id AS INTEGER not necessarily standard
+    """
+    
+    id_value =  _valueset_xwalk(args_dict['vocabulary_oid'], args_dict['concept_code'], 
+                'source_concept_id', args_dict['default']) 
+    if id_value is not None:
+        return int32(id_value)
+    else:
+        return None
 
+
+# def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default):
+#     # Check Dict
+#     if get_valueset_dict() is None:
+#         logger.error("valueset_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py _valueset_xwalk_DICT()")
+#         raise Exception("valueset_dict is not initialized in prototype_2/value_transformations.py for value_transformations.py _valueset_xwalk_DICT()")
+
+#     valueset_dict =  get_valueset_dict()
+#     if len(valueset_dict) < 1:
+#         raise Exception("valueset_dict has zero length in prototype_2/value_transformations.py for value_transformations.py _valueset_xwalk_DICT()")
+
+#     # Get and Check results
+#     mapping_rows = valueset_dict[(vocabulary_oid, concept_code)]
+#     if mapping_rows is None:
+#         logger.error(f"valueset_xwalk_dict mapping_rows is None  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
+#         return default
+#     if len(mapping_rows) < 1 :
+#         if  vocabulary_oid is not None and concept_code is not None:
+#            logger.error(f"valueset_xwalk_dict mapping_rows is <1  for vocab:{vocabulary_oid} code:{concept_code} column_name:{column_name} default:{default}")
+#         return default
+
+#     if len(mapping_rows) > 1:
+#        logger.warn(f"_valueset_xwalk(): more than one  concept for  \"{column_name}\" from  \"{vocabulary_oid}\" \"{concept_code}\", chose the first")
+#     return mapping_rows[0][column_name]
 
 def _valueset_xwalk(vocabulary_oid, concept_code, column_name, default=None):
-    return _codemap_xwalk(vocabulary_oid, concept_code, column_name, default)
+    """
+    Crosswalk a source code to an OMOP concept_id or other column.
+    
+    Nuances:
+      1. Source code missing (None or empty) -> return None, allowing PRIORITY to continue
+      2. Source code present but unmapped -> return 0, stopping PRIORITY chain
+      3. Source code mapped -> return mapped value, fallback to default if missing
+    """
+
+    # NUANCE 1: Truly missing source code
+    if concept_code is None or str(concept_code).strip() == "":
+        return None
+
+    # Check that the valueset_dict exists
+    valueset_dict = get_valueset_dict()
+    if valueset_dict is None:
+        logger.error("valueset_dict is not initialized.")
+        return default
+    if len(valueset_dict) < 1:
+        raise Exception("valueset_dict has zero length.")
+
+    # NUANCE 2: Check mapping
+    mapping_rows = valueset_dict.get((vocabulary_oid, concept_code))
+    
+    if not mapping_rows:
+        logger.info(f"Unmapped concept found: vocab={vocabulary_oid}, code={concept_code}. Returning 0.")
+        return int32(0)  # Stops PRIORITY chain
+
+    # Warn if multiple mappings found
+    if len(mapping_rows) > 1:
+        logger.warn(f"_valueset_xwalk(): more than one concept for column '{column_name}' "
+                    f"from vocab '{vocabulary_oid}' code '{concept_code}', choosing the first.")
+
+    # NUANCE 3: Return mapped value, fallback to default if missing
+    return mapping_rows[0].get(column_name, default)
 
 
 
@@ -333,50 +497,7 @@ def concat_fields(args_dict):
     else :
         values_to_concat = [ args_dict['first_field'], args_dict['second_field'] ]
         return delimiter.join(values_to_concat)
-
-def transform_datetime_low(args):
-    """
-    Transforms a date-only string into a full ISO 8601 datetime defaulting to 00:00:00.
     
-    This function assumes the input is either in ISO 8601 (YYYY-MM-DD) or HL7 (YYYYMMDD) 
-    format. We can make this assumption because this transformation is typically 
-    called after 'parseutils.parser' has already standardized the raw input.
-    """
-    val = args.get('input_value')
-    if not val:
-        return args.get('default')
-    
-    val_str = str(val).strip()
-    # HL7 format (YYYYMMDD)
-    if len(val_str) == 8 and val_str.isdigit():
-        return f"{val_str[:4]}-{val_str[4:6]}-{val_str[6:]}T00:00:00.000Z"
-    # ISO 8601 format (YYYY-MM-DD)
-    if len(val_str) == 10 and '-' in val_str:
-        return f"{val_str}T00:00:00.000Z"
-    
-    return val_str
-
-def transform_datetime_high(args):
-    """
-    Transforms a date-only string into a full ISO 8601 datetime defaulting to 23:59:59.
-    
-    This function assumes the input is either in ISO 8601 (YYYY-MM-DD) or HL7 (YYYYMMDD) 
-    format. We can make this assumption because this transformation is typically 
-    called after 'parseutils.parser' has already standardized the raw input.
-    """
-    val = args.get('input_value')
-    if not val:
-        return args.get('default')
-    
-    val_str = str(val).strip()
-    # HL7 format (YYYYMMDD)
-    if len(val_str) == 8 and val_str.isdigit():
-        return f"{val_str[:4]}-{val_str[4:6]}-{val_str[6:]}T23:59:59.000Z"
-    # ISO 8601 format (YYYY-MM-DD)
-    if len(val_str) == 10 and '-' in val_str:
-        return f"{val_str}T23:59:59.000Z"
-    
-    return val_str
 ####################################################################################################
 
 partner_map = None
@@ -424,3 +545,49 @@ def map_filename_to_mspi(args_dict):
     # If filename is missing, returns 0. 
     # If value exists but isn't an integer, int() will raise a ValueError.
     return int(mapping.get(fname, 0))
+
+
+def transform_datetime_low(args):
+    """
+    Transforms a date-only string into a full ISO 8601 datetime defaulting to 00:00:00.
+    
+    This function assumes the input is either in ISO 8601 (YYYY-MM-DD) or HL7 (YYYYMMDD) 
+    format. We can make this assumption because this transformation is typically 
+    called after 'parseutils.parser' has already standardized the raw input.
+    """
+    val = args.get('input_value')
+    if not val:
+        return args.get('default')
+    
+    val_str = str(val).strip()
+    # HL7 format (YYYYMMDD)
+    if len(val_str) == 8 and val_str.isdigit():
+        return f"{val_str[:4]}-{val_str[4:6]}-{val_str[6:]}T00:00:00.000Z"
+    # ISO 8601 format (YYYY-MM-DD)
+    if len(val_str) == 10 and '-' in val_str:
+        return f"{val_str}T00:00:00.000Z"
+    
+    return val_str
+
+
+def transform_datetime_high(args):
+    """
+    Transforms a date-only string into a full ISO 8601 datetime defaulting to 23:59:59.
+    
+    This function assumes the input is either in ISO 8601 (YYYY-MM-DD) or HL7 (YYYYMMDD) 
+    format. We can make this assumption because this transformation is typically 
+    called after 'parseutils.parser' has already standardized the raw input.
+    """
+    val = args.get('input_value')
+    if not val:
+        return args.get('default')
+    
+    val_str = str(val).strip()
+    # HL7 format (YYYYMMDD)
+    if len(val_str) == 8 and val_str.isdigit():
+        return f"{val_str[:4]}-{val_str[4:6]}-{val_str[6:]}T23:59:59.000Z"
+    # ISO 8601 format (YYYY-MM-DD)
+    if len(val_str) == 10 and '-' in val_str:
+        return f"{val_str}T23:59:59.000Z"
+    
+    return val_str

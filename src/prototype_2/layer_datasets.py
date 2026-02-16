@@ -634,14 +634,12 @@ def main():
         prog='CCDA - OMOP parser with datasets layer layer_datasets.py',
         description="reads CCDA XML, translate to and writes OMOP CSV files",
         epilog='epilog?')
-    #group = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument('-d', '--directory', help="directory of files to parse")
     parser.add_argument('-f', '--filename', help="XML filename to parse")
     parser.add_argument('-ds', '--dataset', help="dataset to parse")
     parser.add_argument('-g', '--config', default='', help="parse configuration filename to use")
     parser.add_argument('-x', '--export', action=argparse.BooleanOptionalAction, help="export to foundry")
     parser.add_argument('-c', '--write_csv', action=argparse.BooleanOptionalAction, help="write CSV files to local")
-    #parser.add_argument('-l', '--limit', action=argparse.BooleanOptionalAction, type=int, help="max files to process")  #, default=0)
     parser.add_argument('-l', '--limit', type=int, help="max files to process", default=0)
     parser.add_argument('-s', '--skip', type=int, help="files to skip before processing to limit, -s 100 ", default=0) 
     args = parser.parse_args()
