@@ -5,8 +5,8 @@ import prototype_2.value_transformations as VT
 
 """
 metadata = {
-    'Provider_encompassingEncounter': {
-
+    'PROVIDER-from-encompassingEncounter_encounterParticipant': {
+        
         'root': {
             'config_type': 'ROOT',
             'expected_domain_id': 'Provider',
@@ -58,7 +58,7 @@ metadata = {
             'config_type': 'HASH',
             'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
                         'provider_id_given', 'provider_id_family',
-                        'provider_id_root', 'provider_id_extension'],
+                        'provider_id_root', 'provider_id_extension','npi','dea','specialty_concept_id','care_site_id'],
             'order': 1
         },
 
@@ -94,7 +94,7 @@ metadata = {
         'specialty_concept_id_codeSystem': { 
             'config_type': 'FIELD',
             'element': 'hl7:code',
-            'attribute': "codesystem"
+            'attribute': "codeSystem"
         },
         'specialty_concept_id': {
        	    'config_type': 'DERIVED',
@@ -168,7 +168,7 @@ metadata = {
 		},
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Provider_encompassingEncounter',
+            'constant_value': 'PROVIDER-from-encompassingEncounter_encounterParticipant',
 			'order':101
 		} 
     },

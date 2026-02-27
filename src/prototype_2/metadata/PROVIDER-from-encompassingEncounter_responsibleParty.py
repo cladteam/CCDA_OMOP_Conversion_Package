@@ -5,16 +5,13 @@ import prototype_2.value_transformations as VT
 
 """
 metadata = {
-    'Provider': {
-
+    'PROVIDER-from-encompassingEncounter_responsibleParty': {
+        
         'root': {
             'config_type': 'ROOT',
             'expected_domain_id': 'Provider',
             # Encounters section
-            'element': ('./hl7:component/hl7:structuredBody/hl7:component/hl7:section/'
-                        'hl7:templateId[ @root="2.16.840.1.113883.10.20.22.2.22" or @root="2.16.840.1.113883.10.20.22.2.22.1" ]/../'
-                        'hl7:entry/hl7:encounter[@moodCode="EVN"]/'
-                        'hl7:performer/hl7:assignedEntity' )
+            'element': './hl7:componentOf/hl7:encompassingEncounter/hl7:responsibleParty/hl7:assignedEntity'
         },
       
         'provider_id_extension': {
@@ -34,12 +31,12 @@ metadata = {
         },
        'provider_id_city': {
             'config_type': 'FIELD',
-            'element': 'hl7:addr/hl7:city',
+            'element':'hl7:addr/hl7:city',
             'attribute': "#text"
         },
         'provider_id_state': {
             'config_type': 'FIELD',
-            'element': 'hl7:addr/hl7:state',
+            'element':('hl7:addr/hl7:state'),
             'attribute': "#text"
         },
         'provider_id_zip': {
@@ -61,14 +58,14 @@ metadata = {
             'config_type': 'HASH',
             'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
                         'provider_id_given', 'provider_id_family',
-                        'provider_id_root', 'provider_id_extension'],
+                        'provider_id_root', 'provider_id_extension','npi','dea','specialty_concept_id','care_site_id'],
             'order': 1
         },
 
-        'provider_name': {
+        'provider_name': { 
             'config_type': 'DERIVED',
             'FUNCTION': VT.concat_fields,
-            'argument_names': {
+            'argument_names':{
                 'first_field': 'provider_id_given',
                 'second_field': 'provider_id_family',
                 'default' : 'n/a'
@@ -84,7 +81,7 @@ metadata = {
         },
         'dea': {
             'config_type': 'FIELD',
-            'element': 'hl7:id[@root="2.16.840.1.113883.4.814"]', 
+            'element': 'hl7:id[@root="2.16.840.1.113883.D.E.A"]', # TODO get the correct OID
             'attribute': "extension",
             'order': 4
         },
@@ -97,7 +94,7 @@ metadata = {
         'specialty_concept_id_codeSystem': { 
             'config_type': 'FIELD',
             'element': 'hl7:code',
-            'attribute': "codesystem"
+            'attribute': "codeSystem"
         },
         'specialty_concept_id': {
        	    'config_type': 'DERIVED',
@@ -113,12 +110,12 @@ metadata = {
         # hl7:encounter/hl7:participant/hl7:participantRole
         'care_site_id_root': { 
             'config_type': 'FIELD',
-            'element': '../../hl7:participant/hl7:participantRole/hl7:id[not(@nullFlavor="UNK")]',
+            'element':'../../hl7:location/hl7:healthCareFacility',
             'attribute': "root",
         },
         'care_site_id_extension': { 
             'config_type': 'FIELD',
-            'element': '../../hl7:participant/hl7:participantRole/hl7:id[not(@nullFlavor="UNK")]',
+            'element':'../../hl7:location/hl7:healthCareFacility',
             'attribute': "extension",
         },
         'care_site_id': { 
@@ -164,14 +161,14 @@ metadata = {
             'argument_names': { 'filename': 'filename' },
             'order': 20
         },
-
-	    'filename' : {
-		    'config_type': 'FILENAME',
-		    'order':100
-	    } ,
+        
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+		},
         'cfg_name' : { 
 			'config_type': 'CONSTANT', 
-            'constant_value': 'Provider',
+            'constant_value': 'PROVIDER-from-encompassingEncounter_responsibleParty',
 			'order':101
 		} 
     },
