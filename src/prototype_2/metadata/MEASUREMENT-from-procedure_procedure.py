@@ -210,11 +210,6 @@ metadata = {
             },
             'priority': ['value_as_concept_id', 1]
     	},
-        'value_as_concept_id_na': {
-            'config_type': 'CONSTANT',
-            'constant_value' : 0,
-            'priority': ['value_as_concept_id', 100]
-        },
     	'value_as_concept_id': {
     	    'config_type': 'PRIORITY',
             'order':  10
