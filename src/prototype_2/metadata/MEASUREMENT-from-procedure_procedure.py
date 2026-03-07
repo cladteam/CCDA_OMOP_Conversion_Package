@@ -210,6 +210,26 @@ metadata = {
             },
             'priority': ['value_as_concept_id', 1]
     	},
+		'value_as_code_XX': {
+    	    'config_type': 'FIELD',
+    	    'element': 'hl7:value' ,
+    	    'attribute': "code",
+        },
+    	'value_as_codeSystem_XX': {
+    	    'config_type': 'FIELD',
+    	    'element': 'hl7:value' ,
+    	    'attribute': "codeSystem",
+        },
+    	'value_as_concept_id_XX': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_concept_id,
+    	    'argument_names': {
+    		    'concept_code': 'value_as_code_XX',
+    		    'vocabulary_oid': 'value_as_codeSystem_XX',
+                'default': None
+            },
+            'priority': ['value_as_concept_id', 3]
+    	},
     	'value_as_concept_id': {
     	    'config_type': 'PRIORITY',
             'order':  10
@@ -271,24 +291,28 @@ metadata = {
     	},
     	# (above) 'unit_source_value': {'config_type': None,  'order':  19 }
 
-    	'value_source_value_constant': {
-    	    'config_type': 'CONSTANT',
-            'constant_value': 'n/a',
-            'priority': ['value_source_value', 4],
-        },
-    	#'value_source_value_text': {
-    	#    'config_type': 'FIELD',
-    	#    'element': 'hl7:value[@xsi:type="ST"]' ,
-    	#    'attribute': "#text",
-        #    'priority': ['value_source_value', 3],
-        #},
-    	'value_source_value_code': {
+    	'value_source_value_text': {
     	    'config_type': 'FIELD',
-    	    'element': 'hl7:value[@xsi:type="CD"]' ,
-    	    'attribute': "code",
+    	    'element': 'hl7:value[@xsi:type="ST"]' ,
+    	    'attribute': "#text",
+            'priority': ['value_source_value', 3],
+		},
+		'value_source_value_concept_id_string': {
+    	    'config_type': 'DERIVED2',
+    	    'FUNCTION': VT.concat_field_list_values,
+    	    'argument_list': {
+       		    'key_list': [
+				 	'value_as_codeSystem_CE',
+    		        'value_as_code_CE',
+				 	'value_as_codeSystem_CD',
+    		        'value_as_code_CD',
+				 	'value_as_codeSystem_XX',
+    		        'value_as_code_XX'
+				]
+            },
             'priority': ['value_source_value', 2],
         },
-    	'value_source_value_value': {
+    	'value_source_value_quantity': {
     	    'config_type': 'FIELD',
     	    'element': 'hl7:value[@xsi:type="PQ"]' ,
     	    'attribute': "value",
