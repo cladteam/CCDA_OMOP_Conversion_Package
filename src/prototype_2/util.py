@@ -89,7 +89,7 @@ def cast_to_date(string_value) ->  datetime.date | None:
     # TODO  when  is it date and when datetime
 
     try:
-        datetime_val = parse(string_value)
+        datetime_val = parse(string_value, ignoretz=True)
         return datetime_val.date()
     except Exception as x:
         print(f"ERROR couldn't parse {string_value} as date. Exception:{x}")
@@ -103,7 +103,7 @@ def cast_to_date(string_value) ->  datetime.date | None:
 
 def cast_to_datetime(string_value) -> datetime.datetime | None:
     try:
-        datetime_val = parse(string_value)
+        datetime_val = parse(string_value, ignoretz=True)
         return datetime_val
     except Exception as x:
         print(f"ERROR couldn't parse {string_value} as datetime. {x}")
