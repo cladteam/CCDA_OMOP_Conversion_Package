@@ -86,7 +86,10 @@ metadata = {
                         'person_id', 'provider_id',
                         'visit_concept_id', 'visit_source_value',
                         'visit_start_date', 'visit_start_datetime',
-                        'visit_end_date', 'visit_end_datetime', 'care_site_id'],
+                        'visit_end_date', 'visit_end_datetime', 
+                        'care_site_id_root', 'care_site_id_extension'
+                        #'care_site_id' # don't use a hash field in a hash field. It may not have been calculated yet.
+                        ],
             'order' : 1
         },
 

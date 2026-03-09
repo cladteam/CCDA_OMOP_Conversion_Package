@@ -732,13 +732,13 @@ def parse_config_for_single_root(root_element, root_path, config_name,
                  f"we have tag:{root_element.tag}"
                  f" attributes:{root_element.attrib}"))
 
-    if 'domain_id' not in output_dict:
+    expected_domain_id = config_dict.get('root', {}).get('expected_domain_id', None)
+    if 'domain_id' not in output_dict and expected_domain_id not in ('Care_Site', 'Location', 'Provider','Person'):
         logger.error("'domain_id' mising from output dict when testing expected_domain_id. Check your "
             f"parse configuration \"{config_name}\" for a field called 'domain_id'. If you don't have one, add it."
             "If you do, check the spelling. Your row will be REJECTED or DENY/DENIED.")        
     domain_id = output_dict.get('domain_id', None) # fetch this before it gets omitted
     output_dict = sort_output_and_omit_dict(output_dict, config_dict, config_name)
-    expected_domain_id = config_dict['root']['expected_domain_id']
 
     # Strict: null domain_id is not good, but don't expect a domain id from non-domain tables
     if (expected_domain_id == domain_id

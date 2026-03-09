@@ -10,7 +10,7 @@ metadata = {
             # Encounters sections
             'element':  ("./hl7:component/hl7:structuredBody/hl7:component/hl7:section"
     		   "/hl7:templateId[ @root='2.16.840.1.113883.10.20.22.2.22' or @root='2.16.840.1.113883.10.20.22.2.22.1']"
-    		   "/../hl7:entry/hl7:encounter')  
+    		   "/../hl7:entry/hl7:encounter")  
         },
     	'procedure_occurrence_id_root': {
             'config_type': 'FIELD',

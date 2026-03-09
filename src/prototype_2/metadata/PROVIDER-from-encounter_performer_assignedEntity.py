@@ -61,7 +61,10 @@ metadata = {
             'config_type': 'HASH',
             'fields' : ['provider_id_street', 'provider_id_city', 'provider_id_state', 'provider_id_zip',
                         'provider_id_given', 'provider_id_family',
-                        'provider_id_root', 'provider_id_extension','npi','dea','specialty_concept_id','care_site_id'],
+                        'provider_id_root', 'provider_id_extension','npi','dea','specialty_concept_id',
+                        'care_site_id_root', 'care_site_id_extension'
+                        #'care_site_id' # don't use a hash field in a hash field. It may not have been calculated yet
+                        ],
             'order': 1
         },
 
