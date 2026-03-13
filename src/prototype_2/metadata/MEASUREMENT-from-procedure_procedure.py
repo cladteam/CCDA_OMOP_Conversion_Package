@@ -149,14 +149,6 @@ metadata = {
     	    'attribute': "{http://www.w3.org/2001/XMLSchema-instance}type",
     	},
 
-    	#'value_as_string': {
-    	#    'config_type': 'FIELD',
-    	#    'element': 'hl7:value[@xsi:type="ST"]' ,
-    	#    'attribute': "#text",
-        #    # field not present in measurement table
-    	#},
-
-
     	'value_as_number_pq': {
     	    'config_type': 'FIELD',
             'data_type': 'FLOAT',
@@ -293,11 +285,16 @@ metadata = {
 
     	'value_source_value_text': {
     	    'config_type': 'FIELD',
-    	    'element': 'hl7:value[@xsi:type="ST"]' ,
+    	    'element': 'hl7:value' ,
     	    'attribute': "#text",
-            'priority': ['value_source_value', 3],
 		},
-		'value_source_value_concept_id_string': {
+    	'value_source_value_quantity': {
+    	    'config_type': 'FIELD',
+    	    'element': 'hl7:value' ,
+    	    'attribute': "value",
+        },
+
+		'value_source_value': {
     	    'config_type': 'DERIVED2',
     	    'FUNCTION': VT.concat_field_list_values,
     	    'argument_list': {
@@ -307,21 +304,14 @@ metadata = {
 				 	'value_as_codeSystem_CD',
     		        'value_as_code_CD',
 				 	'value_as_codeSystem_XX',
-    		        'value_as_code_XX'
+    		        'value_as_code_XX',
+					'value_source_value_quantity',
+					'value_source_value_text'
 				]
             },
-            'priority': ['value_source_value', 2],
-        },
-    	'value_source_value_quantity': {
-    	    'config_type': 'FIELD',
-    	    'element': 'hl7:value[@xsi:type="PQ"]' ,
-    	    'attribute': "value",
-            'priority': ['value_source_value', 1],
-        },
-        'value_source_value' : {
-            'config_type': 'PRIORITY',
             'order':20
         },
+
 		'data_partner_id': {
             'config_type': 'DERIVED',
             'FUNCTION': VT.get_data_partner_id, 

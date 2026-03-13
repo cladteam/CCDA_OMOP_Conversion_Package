@@ -136,13 +136,36 @@ metadata = {
     	    'attribute': "value",
             'order': 7
     	},
+		'value_as_number_string': {
+    	    'config_type': 'FIELD',
+    	    'element': 'hl7:value' ,
+    	    'attribute': "value"
+    	},
     	'value_as_string': {
     	    'config_type': 'FIELD',
             'element': 'hl7:value',  #'element': 'hl7:value[@xsi:type="ST"]', 
     	    'attribute': "#text",
             'order': 8
     	},
-    	'value_as_concept_id': { 'config_type': None, 'order':  9 },
+		'value_code': {
+    	    'config_type': 'FIELD',
+            'element': 'hl7:value', 
+    	    'attribute': "code",
+        },
+        'value_codeSystem': {
+    	    'config_type': 'FIELD',
+            'element': 'hl7:value',
+    	    'attribute': "codeSystem",
+        },
+		'value_as_concept_id': {
+       	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_concept_id,
+    	    'argument_names': {
+    		    'concept_code': 'value_code',
+    		    'vocabulary_oid': 'value_codeSystem'
+    	    },
+            'order':  9
+    	},
         'qualifier_concept_id' : { 'config_type': None, 'order': 10 },
 
 		'unit_source_value':  {
@@ -176,16 +199,21 @@ metadata = {
         
         'visit_detail_id': { 'config_type': None, 'order': 14},
 
-        'observation_source_value': {
-    	    'config_type': 'DERIVED',
-    	    'FUNCTION': VT.concat_fields,
-    	    'argument_names': {
-    		    'first_field': 'observation_concept_code',
-    		    'second_field': 'observation_concept_codeSystem',
-                'default': 'n/a'
-    	    },
-            'order' : 15
-    	},
+   		'observation_source_value': {
+    	    'config_type': 'DERIVED2',
+    	    'FUNCTION': VT.concat_field_list_values,
+    	    'argument_list': {
+       		    'key_list': [
+                    'observation_concept_code',
+                    'observation_concept_codeSystem',
+                    'value_codeSystem',
+                    'value_code', 
+                    'value_as_string',  # yes, redundant
+                    'value_as_number_string'
+				]
+            },
+            'order': 15
+        },
 
         'observation_source_concept_id': { 
 	        'config_type': 'DERIVED',
