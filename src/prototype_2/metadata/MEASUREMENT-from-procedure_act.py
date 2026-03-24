@@ -23,35 +23,24 @@ metadata = {
     	'measurement_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'root',
-            'order': 1001
+            'attribute': 'root'
     	},
     	'measurement_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id[not(@nullFlavor="UNK")]',
-            'attribute': 'extension',
-            'order': 1002
+            'attribute': 'extension'
     	},
-    	'measurement_id_hash': {
+    	'measurement_id': {
     	    'config_type': 'HASH',
-            'fields' : [ 'measurement_id_root', 'measurement_id_extension' ],
-            'priority': ('measurement_id', 1)
-    	},
-    	'measurement_id_constant': {
-            'config_type': 'CONSTANT',
-            'constant_value' : 999,
-            'priority': ('measurement_id', 2)
-        },
-    	'measurement_id_field_hash': {
-    	    'config_type': 'HASH',
-            'fields' : ['person_id', 'visit_occurrence_id', 'measurement_concept_id', 'measurement_time',
-                    'value_as_number', 'value_as_concept_id', 'value_source_value','unit_source_value'],
-            'priority': ('measurement_id', 100)
-    	},
-        'measurement_id': {
-            'config_type': 'PRIORITY',
+            'fields' : ['person_id', 'provider_id',
+						#'visit_occurrence_id',
+						'measurement_concept_code', 'measurement_concept_codeSystem',
+						'measurement_date', 'measurement_datetime',
+                        'value_as_number', 'value_as_concept_id',
+				        'measurement_id_root', 'measurement_id_extension',
+						'value_source_value', 'unit_source_value'],
             'order': 1
-        },
+    	},
 
     	'person_id': {
     	    'config_type': 'FK',

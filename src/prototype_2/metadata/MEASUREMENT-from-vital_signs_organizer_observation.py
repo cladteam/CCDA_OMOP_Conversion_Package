@@ -27,13 +27,13 @@ metadata = {
     	},
     	'measurement_id': {
     	    'config_type': 'HASH',
-            'fields' : ['person_id',  'provider_id',
-                        #'visit_occurrence_id',
-                        'measurement_concept_code', 'measurement_concept_codeSystem',
+            'fields' : ['person_id', 'provider_id',
+						#'visit_occurrence_id',
+						'measurement_concept_code', 'measurement_concept_codeSystem',
 						'measurement_date', 'measurement_datetime',
                         'value_as_number', 'value_as_concept_id',
-				        'measurement_id_root', 'measurement_id_extension', 'value_source_value',
-						'unit_source_value'],
+				        'measurement_id_root', 'measurement_id_extension',
+						'value_source_value', 'unit_source_value'],
             'order': 1
     	},
 
