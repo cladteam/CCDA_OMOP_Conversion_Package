@@ -38,7 +38,7 @@ metadata = {
     	},
 
     	'person_id': {
-    	    'config_type': 'FK',
+     	    'config_type': 'FK',
     	    'FK': 'person_id',
             'order': 2
     	},

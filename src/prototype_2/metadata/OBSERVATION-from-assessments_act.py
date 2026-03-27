@@ -113,13 +113,13 @@ metadata = {
     	},
         'text_value': {
             'config_type': 'FIELD',
-            'data_type': 'STRING',
+            'data_type': 'TEXT',
             'element': "hl7:text",
             'attribute': "value",
         },
         'title_value': {
     	    'config_type': 'FIELD',
-            'data_type': 'STRING',
+            'data_type': 'TEXT',
     	    'element': "hl7:title",
     	    'attribute': "value",
         },

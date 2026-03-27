@@ -126,10 +126,6 @@ def create_hash_too_long(input_string):
     long_hash_value = int(hash_digest, 31)
     return long_hash_value
 
-
-
-
-
 @typechecked
 def parse_field_from_dict(field_details_dict :dict[str, str], root_element, 
         config_name, field_tag, root_path) ->  None | str | float | int | int32 | int64 | datetime.datetime | datetime.date | list:
@@ -568,7 +564,6 @@ def do_hash_fields(output_dict: dict[str, None | str | float | int | int32 | int
                 else:
                     logger.error(f"unknown HASH field  {field_name} in config:{config_name}")
             hash_input =  "|".join(map(str, value_list))
-            #hash_value = create_hash_part1(hash_input)
             hash_value = create_hash(hash_input)
             output_dict[field_tag] = hash_value
             # treat as PK and include in that dictionary

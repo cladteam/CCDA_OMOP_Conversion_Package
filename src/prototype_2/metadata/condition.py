@@ -167,7 +167,7 @@ metadata = {
             'argument_names':{
                 'first_field': 'condition_concept_code',
                 'second_field': 'condition_concept_codeSystem',
-                'default' : 'error'
+                'default' : None
             },
             'order': 14
         },

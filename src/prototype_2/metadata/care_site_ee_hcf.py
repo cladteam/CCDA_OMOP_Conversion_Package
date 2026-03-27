@@ -62,13 +62,13 @@ metadata = {
             'attribute': "codeSystem",
         },
         'place_of_service_concept_id': {
-       	    'config_type': 'DERIVED',
-    	    'FUNCTION': VT.codemap_xwalk_concept_id,
-    	        'argument_names': {
-    		        'concept_code': 'place_of_service_concept_code',
-    		        'vocabulary_oid': 'place_of_service_concept_codeSystem',
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.codemap_xwalk_concept_id,
+            'argument_names': {
+                    'concept_code': 'place_of_service_concept_code',
+                    'vocabulary_oid': 'place_of_service_concept_codeSystem',
                     'default': 0
-    	         },
+            },
             'order': 3
         },
 
@@ -77,6 +77,7 @@ metadata = {
             'fields' : [ 'address_1', 'city', 'state', 'zip'  ],
             'order': 4
         },
+
         'care_site_source_value': {
             'config_type': 'DERIVED2',
             'FUNCTION': VT.concat_field_list_values,
@@ -95,6 +96,7 @@ metadata = {
             },
             'order': 5
         },
+
         'place_of_service_source_value': {
             'config_type': 'DERIVED',
             'FUNCTION': VT.concat_fields,
@@ -143,7 +145,33 @@ metadata = {
 			'config_type': 'CONSTANT', 
             'constant_value': 'Care_Site_ee',
 			'order':101
-		} 
+		},  
+
+        #'id_values': { 
+        #    'config_type': 'DERIVED2',
+        #    'FUNCTION': VT.concat_field_list_values,
+        #    'argument_list': {
+        #        'key_list': ['care_site_name', 'place_of_service_concept_code', 'care_site_id_root', 'city', 'place_of_service_concept_codeSystem',
+        #                'address_1', 'care_site_id_extension', 'state', 'zip']
+        #    },
+        #    'order': 201
+        #},
+        
+        #'id_names': { 
+        #    'config_type': 'DERIVED2',
+        #    'FUNCTION': VT.concat_field_list_names,
+        #    'argument_list': {
+        #        'key_list': ['care_site_name', 'place_of_service_concept_code', 'care_site_id_root', 'city', 'place_of_service_concept_codeSystem',
+        #                'address_1', 'care_site_id_extension', 'state', 'zip']
+        #    },
+        #    'order': 202
+        #},
+        #'care_site_id_values': { 
+        #    'config_type': 'HASH',
+        #    'fields': [ 'id_values'  ],
+        #    'order': 203
+        #},
 
     }
 }
+

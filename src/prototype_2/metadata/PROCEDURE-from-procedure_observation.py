@@ -64,8 +64,8 @@ metadata = {
     	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.codemap_xwalk_domain_id,
     	    'argument_names': {
-    		    'concept_code': 'procedure_concept_id_code',
-    		    'vocabulary_oid': 'procedure_concept_id_codeSystem',
+    		    'concept_code': 'procedure_concept_code',
+    		    'vocabulary_oid': 'procedure_concept_codeSystem',
                 'default': 0
     	    }
     	},           
@@ -150,8 +150,8 @@ metadata = {
        	    'config_type': 'DERIVED',
     	    'FUNCTION': VT.concat_fields,  
     	    'argument_names': {
-    		    'first_field': 'procedure_concept_id_code',
-    		    'second_field': 'procedure_concept_id_codeSystem',
+    		    'first_field': 'procedure_concept_code',
+    		    'second_field': 'procedure_concept_codeSystem',
                 'default': 'error'
     	    },
             'order': 12
@@ -161,8 +161,8 @@ metadata = {
             'config_type': 'DERIVED',
             'FUNCTION': VT.codemap_xwalk_source_concept_id,  
             'argument_names': {
-                'concept_code': 'procedure_concept_id_code',
-                'vocabulary_oid': 'procedure_concept_id_codeSystem',
+                'concept_code': 'procedure_concept_code',
+                'vocabulary_oid': 'procedure_concept_codeSystem',
                 'default': 0
             },
             'order': 13

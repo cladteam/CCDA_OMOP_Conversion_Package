@@ -197,7 +197,7 @@ metadata = {
             'priority' : ['drug_exposure_end_date', 3 ] 
         },  
         'drug_exposure_end_date': {
-            'config_type': 'FIELD',
+            'config_type': 'PRIORITY',
             'order': 6
         },
 

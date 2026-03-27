@@ -1,34 +1,24 @@
-
 import prototype_2.value_transformations as VT
-"""
-    This is for caresites from Encounter/participant/participantRole
 
-
-"""
 metadata = {
     'Care_Site_pr': {
-
         'root': {
             'config_type': 'ROOT',
             'expected_domain_id': 'Care_Site',
-            # Encounters sections
             'element': ('./hl7:component/hl7:structuredBody/hl7:component/hl7:section/'
                         'hl7:templateId[ @root="2.16.840.1.113883.10.20.22.2.22" or @root="2.16.840.1.113883.10.20.22.2.22.1" ]/../'
                         'hl7:entry/hl7:encounter[@moodCode="EVN"]/hl7:participant/'
-                        'hl7:participantRole[@classCode="SDLOC"]' )
-            
+                        'hl7:participantRole[@classCode="SDLOC"]')
         },
 
         'care_site_id_root': {
             'config_type': 'FIELD',
             'element': 'hl7:id',
-            #    'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': "root",
         },
         'care_site_id_extension': {
             'config_type': 'FIELD',
             'element': 'hl7:id',
-            #    'element': 'hl7:id[not(@nullFlavor="UNK")]',
             'attribute': "extension",
         },
         'care_site_id': { 
@@ -40,12 +30,12 @@ metadata = {
                         'address_1', 'city', 'state', 'zip' ],
             'order': 1
         },
-            
-        'care_site_name': {  # TBD
+
+        'care_site_name': {
             'config_type': 'FIELD',
             'element': 'hl7:playingEntity[@classCode="PLC"]/hl7:name',
             'attribute': "#text",
-            'order': 2
+            'order': 2  # Output field
         },
 
         'place_of_service_concept_code': {
@@ -58,14 +48,14 @@ metadata = {
             'element': 'hl7:code',
             'attribute': "codeSystem",
         },
-        'place_of_service_concept_id': {
-       	    'config_type': 'DERIVED',
-    	    'FUNCTION': VT.codemap_xwalk_concept_id,
-    	        'argument_names': {
-    		        'concept_code': 'place_of_service_concept_code',
-    		        'vocabulary_oid': 'place_of_service_concept_codeSystem',
-                    'default': 0
-    	         },
+        'place_of_service_concept_id': { 
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.codemap_xwalk_concept_id,
+            'argument_names': {
+                'concept_code': 'place_of_service_concept_code',
+                'vocabulary_oid': 'place_of_service_concept_codeSystem',
+                'default': 0
+            },
             'order': 3
         },
 
@@ -103,13 +93,11 @@ metadata = {
             'order': 6
         },
 
-        # addresses here for use in location_id hash above
         'address_1': {
             'config_type': 'FIELD',
             'element': 'hl7:addr/hl7:streetAddressLine',
             'attribute': "#text",
         },
-        # 'address_2'
         'city': {
             'config_type': 'FIELD',
             'element': 'hl7:addr/hl7:city',
@@ -138,11 +126,37 @@ metadata = {
             'config_type': 'FILENAME',
             'order':100
         },
-        'cfg_name' : { 
-			'config_type': 'CONSTANT', 
-            'constant_value': 'Care_Site_pr',
-			'order':101
-		}         
 
+        'cfg_name': { 
+            'config_type': 'CONSTANT', 
+            'constant_value': 'Care_Site_pr',
+            'order': 101
+        }
+        #'id_values': { 
+        #    'config_type': 'DERIVED2',
+        #    'FUNCTION': VT.concat_field_list_values,
+        #    'argument_list': {
+        #        'key_list': ['care_site_name', 'place_of_service_concept_code', 'care_site_id_root', 'city', 'place_of_service_concept_codeSystem',
+        #                'address_1', 'care_site_id_extension', 'state', 'zip']
+        #       #'fields': ['care_site_name', 'place_of_service_concept_code', 'care_site_id_root', 
+        #       #       'city', 'place_of_service_concept_codeSystem', 'address_1', 
+        #       #       'care_site_id_extension', 'state', 'zip'],
+        #    },
+        #    'order': 201
+        #},
+        #'id_names': { 
+        #    'config_type': 'DERIVED2',
+        #    'FUNCTION': VT.concat_field_list_names,
+        #    'argument_list': {
+        #        'key_list': ['care_site_name', 'place_of_service_concept_code', 'care_site_id_root', 'city', 'place_of_service_concept_codeSystem',
+        #                'address_1', 'care_site_id_extension', 'state', 'zip']
+        #    },
+        #    'order': 202
+        #},
+        #'care_site_id_values': { 
+        #    'config_type': 'HASH',
+        #    'fields': ['id_values' ],
+        #    'order': 203
+        #},
     }
 }
