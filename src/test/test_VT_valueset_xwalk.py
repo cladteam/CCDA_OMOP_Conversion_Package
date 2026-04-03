@@ -1,6 +1,6 @@
 import numpy as np
-import prototype_2.value_transformations as VT
-import prototype_2.data_driven_parse as DDP
+import ccda_to_omop.value_transformations as VT
+import ccda_to_omop.data_driven_parse as DDP
 
 
 def test_race_nuance_logic():

@@ -1,5 +1,5 @@
 import unittest
-import prototype_2.value_transformations as VT
+import ccda_to_omop.value_transformations as VT
 
 class TestDateTime(unittest.TestCase):
 

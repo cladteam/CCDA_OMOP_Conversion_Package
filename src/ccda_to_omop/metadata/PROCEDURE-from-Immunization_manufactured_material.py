@@ -1,0 +1,162 @@
+from numpy import int32
+from numpy import float32
+import ccda_to_omop.value_transformations as VT
+#
+metadata = {
+    'PROCEDURE-from-Immunization_manufactured_material': {
+    	'root': {
+    	    'config_type': 'ROOT',
+            'expected_domain_id': 'Procedure',
+            # Procedure section, entry, procedure
+    	    'element':
+			("./hl7:component/hl7:structuredBody/hl7:component/hl7:section"
+    		   "/hl7:templateId[@root='2.16.840.1.113883.10.20.22.2.2' or @root='2.16.840.1.113883.10.20.22.2.2.1']"
+    		   "/../hl7:entry/hl7:substanceAdministration/hl7:consumable/hl7:manufacturedProduct/hl7:manufacturedMaterial")
+              # "/hl7:statusCode[@code='active' or @code='completed']/..")
+        },
+    	'procedure_occurrence_id_root': {
+            'config_type': 'FIELD',
+            'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
+            'attribute': 'root',
+    	},
+    	'procedure_occurrence_id_extension': {
+            'config_type': 'FIELD',
+            'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
+            'attribute': 'extension',
+    	},
+    	'procedure_occurrence_id': {
+    	    'config_type': 'HASH',
+            'fields' : ['person_id', 'provider_id',
+                        #'visit_occurrence_id',  'procedure_concept_id', 
+                        'procedure_concept_code', 'procedure_concept_codeSystem',
+                        'procedure_date', 'procedure_datetime',
+                        'procedure_occurrence_id_root', 'procedure_occurrence_id_extension' ],
+            'order': 1
+    	},        
+
+    	'person_id': {
+    	    'config_type': 'FK',
+    	    'FK': 'person_id',
+            'order': 2
+    	},
+
+    	'procedure_concept_code': {
+    	    'config_type': 'FIELD',
+    	    'element': "hl7:code" ,
+    	    'attribute': "code"
+    	},
+    	'procedure_concept_codeSystem': {
+    	    'config_type': 'FIELD',
+    	    'element': "hl7:code",
+    	    'attribute': "codeSystem"
+    	},
+    	'procedure_concept_id': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_concept_id,  
+    	    'argument_names': {
+    		    'concept_code': 'procedure_concept_code',
+    		    'vocabulary_oid': 'procedure_concept_codeSystem',
+                'default': 0
+            },
+            'order': 3
+    	},
+
+    	
+    	'domain_id': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_domain_id,
+    	    'argument_names': {
+    		    'concept_code': 'procedure_concept_code',
+    		    'vocabulary_oid': 'procedure_concept_codeSystem',
+                'default': 0
+    	    }
+    	},
+        
+        'procedure_date_eT': {
+    	    'config_type': 'FIELD',
+            'data_type':'DATE',
+    	    'element': "../../../hl7:effectiveTime",
+    	    'attribute': "value",
+			'priority' : ['procedure_date', 1]
+    	},
+		'procedure_date_low': { 
+    	    'config_type': 'FIELD',
+            'data_type':'DATE',
+    	    'element': "../../../hl7:effectiveTime/hl7:low",
+    	    'attribute': "value",
+			'priority' : ['procedure_date', 2]
+    	},
+		'procedure_date_high': {
+    	    'config_type': 'FIELD',
+            'data_type':'DATE',
+    	    'element': "../../../hl7:effectiveTime/hl7:high",
+    	    'attribute': "value",
+			'priority' : ['procedure_date', 3]
+    	},
+		'procedure_date': {
+    	    'config_type': 'PRIORITY',
+            'order': 4
+    	},
+
+        'procedure_datetime_eT': {
+    	    'config_type': 'FIELD',
+            'data_type':'DATETIME',
+    	    'element': "../../../hl7:effectiveTime",
+    	    'attribute': "value",
+			'priority' : ['procedure_datetime', 1]
+    	},
+		'procedure_datetime_low': {
+    	    'config_type': 'FIELD',
+            'data_type':'DATETIME',
+    	    'element': "../../../hl7:effectiveTime/hl7:low",
+    	    'attribute': "value",
+			'priority' : ['procedure_datetime', 2]
+    	},
+		'procedure_datetime_high': {
+    	    'config_type': 'FIELD',
+            'data_type':'DATETIME',
+    	    'element': "../../../hl7:effectiveTime/hl7:high",
+    	    'attribute': "value",
+			'priority' : ['procedure_datetime', 3]
+    	},
+		'procedure_datetime': {
+    	    'config_type': 'PRIORITY',
+            'order': 5
+		},    
+
+        'procedure_type_concept_id': {
+            'config_type': 'CONSTANT',
+            'constant_value' : int32(32817), # OMOP concept ID for 'EHR'
+            'order': 6
+        },
+        
+        'modifier_concept_id': { 'config_type': None, 'order': 7 },
+        'quantity': { 'config_type': None, 'order': 8},
+        'provider_id': {'config_type': None, 'order': 9 },
+        'visit_occurrence_id':	{
+    	    'config_type': 'FK',
+    	    'FK': 'visit_occurrence_id',
+            'order':  10
+        },     
+
+        'visit_detail_id': { 'config_type': None, 'order': 11 },
+        'procedure_source_value': {'config_type': None,  'order': 12},
+        'procedure_source_concept_id': {'config_type': None,  'order': 13},
+        'modifier_source_value': {'config_type': None, 'order': 14},
+        'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 20
+        },
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+		},
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'PROCEDURE-from-Immunization_manufactured_material',
+			'order':101
+		} 
+    }
+}

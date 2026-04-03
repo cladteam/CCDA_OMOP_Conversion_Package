@@ -1,6 +1,6 @@
 
 import unittest
-import prototype_2.metadata as MD
+import ccda_to_omop.metadata as MD
 
 
 
