@@ -1,6 +1,6 @@
 
-import prototype_2.value_transformations as VT
-import prototype_2.data_driven_parse as DDP
+import ccda_to_omop.value_transformations as VT
+import ccda_to_omop.data_driven_parse as DDP
 from lxml import etree as ET
 import re
 

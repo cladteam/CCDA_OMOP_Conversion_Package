@@ -1,0 +1,289 @@
+
+from numpy import int32
+import ccda_to_omop.value_transformations as VT
+
+metadata = {
+    'Medication_medication_dispense': {
+    	'root': {
+    	    'config_type': 'ROOT',
+            'expected_domain_id': 'Drug',
+            # Medication Dispense
+            # Medications section, entry, substanceAdministration, entryRelationship, supply
+            #substanceAdministration/@moodCode="INT" represents intention of patient to take the  medications ?
+            #supply/@moodCode="EVN" represents medications are dispensed to the patient.
+    	    'element':
+     		  ('./hl7:component/hl7:structuredBody/hl7:component/hl7:section'
+    		   '/hl7:templateId[@root="2.16.840.1.113883.10.20.22.2.1" or @root="2.16.840.1.113883.10.20.22.2.1.1"]/..'
+                   '/hl7:entry/hl7:substanceAdministration[@moodCode="INT" or @moodCode="EVN"]' 
+                   '/hl7:entryRelationship/hl7:supply/hl7:statusCode[@code="active" or @code="completed"]' 
+                   '/hl7:statusCode[@code="active" or @code="completed"]/..'
+                   '/hl7:templateId[@root="2.16.840.1.113883.10.20.22.4.18"]/..'
+    	           '/hl7:product/hl7:manufacturedProduct/hl7:manufacturedMaterial' 
+              )
+           
+        },
+
+    	'drug_exposure_id_root': {
+            'config_type': 'FIELD',
+            'element': '../../../hl7:id[not (@nullFlavor="UNK")]',
+            'attribute': 'root'
+    	},
+    	'drug_exposure_id_extension': {
+            'config_type': 'FIELD',
+            'element': '../../../hl7:id[not(@nullFlavor="UNK")]',
+            'attribute': 'extension'
+    	},
+        'drug_exposure_id': {
+    	    'config_type': 'HASH',
+            'fields' : ['person_id',  'provider_id',
+                        #'visit_occurrence_id',
+                        'drug_concept_code', 'drug_concept_codeSystem',
+                        'drug_exposure_start_date', 'drug_exposure_start_datetime',
+                        'drug_exposure_end_date', 'drug_exposure_end_datetime',
+                        'quantity',
+                        'drug_exposure_id_root', 'drug_exposure_id_extension'],
+                        
+            'order': 1
+        },
+
+    	'person_id': {
+    	    'config_type': 'FK',
+    	    'FK': 'person_id',
+            'order': 2
+    	},
+
+        # consumable/manufacturedProduct/manufacturedMaterial/...
+    	'drug_concept_code': {
+    	    'config_type': 'FIELD',
+    	    'element': "hl7:code" ,
+    	    'attribute': "code"
+    	},
+    	'drug_concept_codeSystem': {
+    	    'config_type': 'FIELD',
+    	    'element': "hl7:code",
+    	    'attribute': "codeSystem"
+    	},
+    	'drug_concept_id': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_concept_id,  
+    	    'argument_names': {
+    		    'concept_code': 'drug_concept_code',
+    		    'vocabulary_oid': 'drug_concept_codeSystem',
+                'default': 0
+    	    },
+            'order': 3
+    	},
+
+    	'domain_id': {
+    	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.codemap_xwalk_domain_id,
+    	    'argument_names': {
+    		    'concept_code': 'drug_concept_code',
+    		    'vocabulary_oid': 'drug_concept_codeSystem',
+                'default': 0
+    	    }
+    	},
+        
+        'drug_exposure_start_date_value': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime", 
+            'attribute': "value",
+            'data_type': 'DATE',
+            'priority': ('drug_exposure_start_date', 2)
+        },        
+        'drug_exposure_start_date_low': {
+            'config_type': 'FIELD',
+            'element': '../../../hl7:effectiveTime/hl7:low[not(@nullFlavor="UNK")]', 
+            'attribute': "value",
+            'data_type': 'DATE',
+            'priority': ('drug_exposure_start_date', 1)
+        },        
+        'drug_exposure_start_date_high': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:high", 
+            'attribute': "value",
+            'data_type': 'DATE',
+            'priority' : ['drug_exposure_start_date', 3 ] 
+        },
+        'drug_exposure_start_date': {
+            'config_type': 'PRIORITY',
+            'order': 4
+        },
+        'drug_exposure_start_datetime_value': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime", 
+            'attribute': "value",
+            'data_type': 'DATETIME_LOW',
+            'priority': ('drug_exposure_start_datetime', 2)
+        },        
+        'drug_exposure_start_datetime_low': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:low[not(@nullFlavor='UNK')]", 
+            'attribute': "value",
+            'data_type': 'DATETIME_LOW',
+            'priority': ('drug_exposure_start_datetime', 2)
+        },     
+        'drug_exposure_start_datetime_high': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:high", 
+            'attribute': "value",
+            'data_type': 'DATETIME_LOW',
+            'priority' : ['drug_exposure_start_datetime', 3 ] 
+        },   
+        'drug_exposure_start_datetime': {
+            'config_type': 'PRIORITY',
+            'order': 5
+        },
+        'drug_exposure_end_date_high': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
+            'attribute': "value",
+            'data_type': 'DATE',
+            'priority': ('drug_exposure_end_date', 1)
+        },
+        'drug_exposure_end_date_value': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime", 
+            'attribute': "value",
+            'data_type': 'DATE',
+            'priority': ('drug_exposure_end_date', 2)
+        },
+        'drug_exposure_end_date_low': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:low[not(@nullFlavor='UNK')]", 
+            'attribute': "value",
+            'data_type': 'DATE',
+            'priority': ('drug_exposure_end_date', 3)
+        },   
+        'drug_exposure_end_date': {
+            'config_type': 'PRIORITY',
+            'order': 6
+        },
+
+        'drug_exposure_end_datetime_high': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:high[not(@nullFlavor='UNK')]", 
+            'attribute': "value",
+            'data_type': 'DATETIME_HIGH',
+            'priority': ('drug_exposure_end_datetime', 1)
+        },
+        'drug_exposure_end_datetime_value': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime", 
+            'attribute': "value",
+            'data_type': 'DATETIME_HIGH',
+            'priority': ('drug_exposure_end_datetime', 2)
+        },
+        'drug_exposure_end_datetime_low': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:effectiveTime/hl7:low[not(@nullFlavor='UNK')]", 
+            'attribute': "value",
+            'data_type': 'DATETIME_HIGH',
+            'priority': ('drug_exposure_end_datetime', 3)
+        },  
+        'drug_exposure_end_datetime': {
+            'config_type': 'PRIORITY',
+            'order': 7
+        },
+        'verbatim_end_date': {
+    	    'config_type': 'FIELD',
+            'data_type': 'DATE',
+            'element': "../../../hl7:effectiveTime/hl7:high[not(@nullFlavor=\"UNK\")]",
+    	    'attribute': "value",
+            'order': 8
+    	},
+
+        'drug_type_concept_id': {
+            'config_type': 'CONSTANT',
+            'constant_value' : int32(32825), # OMOP concept ID for 'EHR dispensing record'
+            'order': 9
+        },
+       'stop_reason': { 
+            'config_type': 'CONSTANT',
+            'constant_value' : '',
+            'length': 20,
+            'order':10
+        }, 
+        
+        'refills': { 'config_type': None, 'order': 11},
+
+        # This approach applies primarily to pre-coordinated consumables, 
+        # Example: If the "metoprolol 25mg tablet" is dispensed as 30 tablets,
+        #  the extracted quantity will be 30.
+        # Needs additional approaches to handle liquid formulations, clinical 
+        # drugs with divisible dose forms (e.g., injections), and other quantified 
+        # clinical drugs
+        'quantity': {
+            'config_type': 'FIELD',
+            'element': "../../../hl7:quantity",
+            'attribute': "value",
+            'data_type': 'FLOAT',
+            'order': 12
+        },
+        
+        'days_supply': { 'config_type': None, 'order': 13 },
+        'sig': { 'config_type': None, 'order': 14 },
+        'route_concept_id': { 'config_type': None, 'order': 15 },
+        'lot_number': { 'config_type': None, 'order': 16},
+                
+        'provider_id': { 
+    	    'config_type': 'FK',
+    	    'FK': 'provider_id',
+            'order': 17
+    	},
+
+        'visit_occurrence_id': { 
+    	    'config_type': 'FK',
+    	    'FK': 'visit_occurrence_id',
+            'order':  18
+    	},
+        
+        'visit_detail_id': { 'config_type': None, 'order': 19 },
+        'drug_source_value': {
+       	    'config_type': 'DERIVED',
+    	    'FUNCTION': VT.concat_fields,  
+    	    'argument_names': {
+    		    'first_field': 'drug_concept_code',
+    		    'second_field': 'drug_concept_codeSystem',
+                'default': 'error'
+    	    },
+            'order': 20
+        },
+
+        'drug_source_concept_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.codemap_xwalk_source_concept_id,  
+            'argument_names': {
+                'concept_code': 'drug_concept_code',
+                'vocabulary_oid': 'drug_concept_codeSystem',
+                'default': 0
+            },
+            'order': 21 },
+        
+        'route_source_value': { 'config_type': None, 'order': 22 },
+
+        'dose_unit_source_value': { 
+       	    'config_type': 'FIELD',
+            #'element': "hl7:doseQuantity",
+            'element': "../../../hl7:doseQuantity",
+            'attribute': "unit",
+            'order': 23
+        },
+        'data_partner_id': {
+            'config_type': 'DERIVED',
+            'FUNCTION': VT.get_data_partner_id, 
+            'argument_names': { 'filename': 'filename' },
+            'order': 24
+        },
+        
+        'filename' : {
+            'config_type': 'FILENAME',
+            'order':100
+        },
+        'cfg_name' : { 
+			'config_type': 'CONSTANT', 
+            'constant_value': 'Medication_medication_dispense',
+			'order':101
+		}         
+    }
+}
